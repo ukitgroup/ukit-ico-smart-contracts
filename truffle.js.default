@@ -1,0 +1,20 @@
+const rpc = {
+	host       : '127.0.0.1',
+	port       : 8545,
+	network_id : '*',
+	gas        : 2 * 10**6,
+	gasPrice   : 20 * 10**9
+}
+
+module.exports = {
+	rpc,
+	networks : {
+		development : rpc
+	},
+	solc : {
+		optimizer : {
+			enabled : true,
+			runs : 200
+		}
+	}
+}

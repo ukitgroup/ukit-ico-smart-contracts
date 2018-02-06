@@ -1,0 +1,11 @@
+contracts/
+!contracts/Migrations.sol
+
+node_modules/
+
+.idea/
+.pass
+.DS_Store/
+
+yarn-error.log
+README.html

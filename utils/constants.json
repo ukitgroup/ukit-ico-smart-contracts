@@ -1,0 +1,42 @@
+{
+	"owner": {
+		"key": "0xbbd8bf2d24fa418476f707ff8cecc06d29be9d11b22c7c12c2684207e03ba94f",
+		"address": "0xb3daeae895300b4a3f60522592744b09c7a81958"
+	},
+	"team": {
+		"key":"0x7134c4789b97263df00ece1e87eddc76a3e4c93f0db2ab5ad7dc197327916618",
+		"address":"0xec5a57b3a7fd75cf019e85865dec140bcaf21b74"
+	},
+	"reserve": {
+		"key":"0x5a000d814c94ec1a92848ac6b3900d5bc5d16b7d384cfd2fb646e9716663f0e2",
+		"address":"0x638764a6cb1ad8c07835e96705ce2d4a62241741"
+	},
+	"advisors": {
+		"key":"0xdacaab518afed020e0fbddc92f3ef9229350587564be3cc07294b48cab8e7165",
+		"address":"0x8745c03893f3ce6b742af904286e54f0ee41879d"
+	},
+	"icos": {
+		"key":"0xc0b18619ff8b49007b9aed3b742c8c5b740fb13a95d1a136f88776ea90c7562f",
+		"address":"0x622c0fa2beeead0b3f6f79b710c8769ba730a697"
+	},
+	"newOwner": {
+		"key":"0x7d995175e4c0d9a849f003ab8435851cfcbc1ade4cd644db19df4dde614fcc4b",
+		"address":"0x0977c3475cce052ad6254bfbca563cf505030e50"
+	},
+	"investor1": {
+		"key":"0x33e757273a810480089aa5e75706b541c3ebd58237e820e927d21a769397f070",
+		"address":"0x5d4000cc8deec99849a3dd01b7ca90c6ca4b014b"
+	},
+	"investor2": {
+		"key":"0x032e9da1a9f15d8cee797ef4cc3a69ed8c0c7d031d4148884d02ad8d6769c88d",
+		"address":"0x33d4fc6473bf88e656d9861f01783177c2b063d3"
+	},
+	"investor3": {
+		"key":"0xd725b9bfbde94688831bfde71265726ed98e5b3ef4ceacd1f9b9d2412f8db62f",
+		"address":"0x818f60957e4eb1a7d621662342f50816fbe29d87"
+	},
+	"investor4": {
+		"key":"0x06394d4641cca6e2951db5581f72eba39fbfbbdeac8c9cf3636fef8d4457bced",
+		"address":"0x6d45e68067ccad0c373ebc268d254aae5fac6169"
+	}
+}
