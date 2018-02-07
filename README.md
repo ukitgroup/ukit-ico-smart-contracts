@@ -1,4 +1,4 @@
-# [![uKit ICO](assets/logo.svg?raw=true)](https://ico.ukit.com)
+# [![uKit ICO](./assets/logo.svg "uKit ICO")](https://ico.ukit.com)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-66007A.svg)](https://opensource.org/licenses/Apache-2.0)
 [![node](https://img.shields.io/badge/node-v9.4.0-50EA3B.svg)](https://nodejs.org/en/docs/)
