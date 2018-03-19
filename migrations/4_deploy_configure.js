@@ -6,14 +6,7 @@ const Controller = artifacts.require('UKTTokenController')
 
 module.exports = async (deployer, network, accounts) => {
 	
-	let config = {}
-	
-	try {
-		config = require(`../config/deploy/${network}`)
-	} catch (error) {
-		console.error(error)
-		process.exit(1)
-	}
+	const { config } = global
 	
 	const TokenInstance = await Token.deployed()
 	const ControllerInstance = await Controller.deployed()
@@ -40,10 +33,10 @@ module.exports = async (deployer, network, accounts) => {
 	
 	const { allocations : allocationsConfig } = config
 	
-	// Allocating initial balances
 	
+	// Allocating initial balances
 	const allocationAddresses = allocationsConfig.map(
-		a => a.address || Controller.address
+		a => a.name === 'ico' ? Controller.address : a.address
 	)
 	const allocationAddressesTypes = allocationsConfig.map(
 		a => a.name
@@ -59,22 +52,18 @@ module.exports = async (deployer, network, accounts) => {
 		allocationAmounts
 	)
 	
-	// Locking addresses
 	
-	const lockedAllocationAddresses = allocationsConfig.filter(
-		a => a.lock && a.address !== Controller.address
-	)
+	// Locking addresses
+	const lockedAllocationAddresses = allocationsConfig.filter(a => a.lock)
 	
 	for (const a of lockedAllocationAddresses) {
 		debug("> Locking balance for address %s...", a.address)
 		await ControllerInstance.lockAllocationAddress(a.address)
 	}
 	
-	// Timelocking addresses
 	
-	const timelockedAllocationAddresses = allocationsConfig.filter(
-		a => a.timelock && a.address !== Controller.address
-	)
+	// Timelocking addresses
+	const timelockedAllocationAddresses = allocationsConfig.filter(a => a.timelock)
 	
 	for (const a of timelockedAllocationAddresses) {
 		debug("> Timelocking balance for address %s till %d timestamp...", a.address, a.timelock)

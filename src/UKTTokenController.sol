@@ -18,6 +18,10 @@ contract UKTTokenController is Ownable {
 	
 	// address of the controlled token
 	UKTToken public token;
+	// finalize function type. One of two values is possible: "transfer" or "burn"
+	bytes32 public finalizeType = "transfer";
+	// address type where finalize function will transfer undistributed tokens
+	bytes32 public finalizeTransferAddressType = "";
 	// maximum quantity of addresses to distribute
 	uint8 internal MAX_ADDRESSES_FOR_DISTRIBUTE = 100;
 	// list of locked initial allocation addresses
@@ -26,6 +30,26 @@ contract UKTTokenController is Ownable {
 	
 	// fires when tokens distributed to holder
 	event Distributed(address indexed owner, uint256 amount);
+	
+	
+	/**
+	 * @dev The UKTTokenController constructor
+	 */
+	function UKTTokenController(
+		bytes32 _finalizeType,
+		bytes32 _finalizeTransferAddressType
+	) public {
+		require(_finalizeType == "transfer" || _finalizeType == "burn");
+		
+		if (_finalizeType == "transfer") {
+			require(_finalizeTransferAddressType != "");
+		} else if (_finalizeType == "burn") {
+			require(_finalizeTransferAddressType == "");
+		}
+		
+		finalizeType = _finalizeType;
+		finalizeTransferAddressType = _finalizeTransferAddressType;
+	}
 	
 	
 	/**
@@ -104,6 +128,21 @@ contract UKTTokenController is Ownable {
 	
 	
 	/**
+	 * @dev Unlocks all allocation addresses
+	 */
+	function unlockAllAllocationAddresses() public onlyOwner returns (bool) {
+		for(uint a = 0; a < lockedAddressesList.length; a++) {
+			if (lockedAddressesList[a] == address(0)) {
+				continue;
+			}
+			unlockAllocationAddress(lockedAddressesList[a]);
+		}
+		
+		return true;
+	}
+	
+	
+	/**
 	 * @dev Locks given allocation address with timestamp
 	 */
 	function timelockAllocationAddress(
@@ -139,23 +178,22 @@ contract UKTTokenController is Ownable {
 	
 	
 	/**
-	 * @dev Finalizes the ability to use the controller and destructs it. The only method with a hard-coded logical part
+	 * @dev Finalizes the ability to use the controller and destructs it
 	 */
 	function finalize() public onlyOwner {
 		
-		// transfer rest of ICO tokens to "reserveFund" balance
-		token.transfer(
-			token.allocationAddressesTypes("reserve"),
-			token.balanceOf(this)
-		);
-		
-		// unlock allocation addresses
-		for(uint a = 0; a < lockedAddressesList.length; a++) {
-			if (lockedAddressesList[a] == address(0)) {
-				continue;
-			}
-			unlockAllocationAddress(lockedAddressesList[a]);
+		if (finalizeType == "transfer") {
+			// transfer all undistributed tokens to particular address
+			token.transfer(
+				token.allocationAddressesTypes(finalizeTransferAddressType),
+				token.balanceOf(this)
+			);
+		} else if (finalizeType == "burn") {
+			// burn all undistributed tokens
+			token.burn(token.balanceOf(this));
 		}
+		
+		require(unlockAllAllocationAddresses());
 		
 		selfdestruct(owner);
 	}

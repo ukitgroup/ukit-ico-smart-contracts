@@ -24,7 +24,7 @@ Giving traffic contributors an opportunity to earn by educating the system.
 
 ## Repo description
 
-This repository is based on the [Truffle] framework (http://truffleframework.com/docs/getting_started/installation), which is used to compile, test, and deploy smart contracts.
+This repository is based on the [Truffle](http://truffleframework.com/docs/getting_started/installation) framework, which is using for compilation, testing and deployment smart contracts.
 
 [Ganache](https://github.com/trufflesuite/ganache-cli) is used for testing of smart contracts in a private blockchain.
 
@@ -68,6 +68,8 @@ To install the dependencies, you must run the following command `yarn install`.
 
 ## Configuring
 
+### Networks
+
 By default, Truffle is configured to use the *development* network:
 
 ```javascript
@@ -82,7 +84,7 @@ By default, Truffle is configured to use the *development* network:
 
 Each network is configured by default as *development*.
 
-To override any values, you must create a file ***./config/development.js*** that exports the overridden directives, for example:
+To override any values, you must create a file ***./config/networks/development.js*** that exports the overridden directives, for example:
 
 ```javascript
 module.exports = {
@@ -94,7 +96,7 @@ module.exports = {
 
 Transactions in the *development* network are signed by the first unlocked Ganache account. To specify a different account, you must specify the directive `from: <unlocked_address>`.
 
-To add a new network, you must create a file named as the network, for example, ***./config/live.js***:
+To add a new network, you must create a file named as the network, for example, ***./config/networks/live.js***:
 
 ```javascript
 module.exports = {
@@ -103,6 +105,67 @@ module.exports = {
 	network_id : '*',
 	gas        : 2 * 10**6,
 	gasPrice   : 10 * 10**9
+}
+```
+
+### Deployment
+
+By default, project comes with deployment configuration for *development* network -- ***./config/deploy/development.js***.
+
+| Property                                       | Required | Type       | Description
+| ---------------------------------------------- | :------: | :--------: | -----------
+| token                                          | &middot; | `Object`   |
+| &nbsp;&nbsp;&nbsp;name                         | &middot; | `String`   | Full name of the token
+| &nbsp;&nbsp;&nbsp;symbol                       | &middot; | `String`   | Token short name (ticker)
+| &nbsp;&nbsp;&nbsp;totalSupply                  | &middot; | `Number`   | Total supply amount; *can not be different than summ of all allocation amounts*; *should be an integer*
+| &nbsp;&nbsp;&nbsp;decimals                     | &middot; | `Number`   | Number of digits after decimal separator; *should be an integer between 0 and 18*
+| controller                                     | &middot; | `Object`   |
+| &nbsp;&nbsp;&nbsp;finalizeType                 | &middot; | `String`   | Controller finalization type; *may be `burn` or `transfer`*
+| &nbsp;&nbsp;&nbsp;finalizeTransferAddressType  |          | `String`   | Name of the one of the addresses from allocations object; *required for `transfer` finalizeType*; *can not be the name (`ico`) of the ICO controller address*
+| allocations                                    | &middot; | `[Object]` |
+| &nbsp;&nbsp;&nbsp;name                         | &middot; | `String`   | Name of the allocation address; *name `ico` is the reserved name for controller address*
+| &nbsp;&nbsp;&nbsp;amount                       | &middot; | `Number`   | Amount of allocation; *should be an integer*
+| &nbsp;&nbsp;&nbsp;address                      |          | `String`   | String representation of the Ethereum address; *not suitable for the allocation with name `ico`*
+| &nbsp;&nbsp;&nbsp;lock                         |          | `Boolean`  | Flag for allocation locking; *all locked allocations will be unlocked after ICO finalization*
+| &nbsp;&nbsp;&nbsp;timelock                     |          | `Number`   | Date till allocation will be locked; *timestamp (in seconds) of the particular unlocking date*; *should be an integer*
+
+Example configuration may look like this:
+
+```javascript
+{
+	token : {
+		name        : 'Token Name',
+		symbol      : 'TOKEN',
+		totalSupply : 10**6,
+		decimals    : 18
+	},
+	controller : {
+		finalizeType                : 'burn',
+		finalizeTransferAddressType : ''
+	},
+	allocations : [
+		{
+			name   : 'ico',
+			amount : 3 * 10**6
+		},
+		{
+			name     : 'timelocked',
+			address  : '0x0000000000000000000000000000000000000000',
+			amount   : 10**6,
+			timelock : Math.ceil(Date.now() / 1000) + 60 * 60 * 24 * 548 // +1.5 years
+		},
+		{
+			name    : 'locked',
+			address : '0x0000000000000000000000000000000000000000',
+			amount  : 10**6,
+			lock    : true
+		},
+		{
+			name    : 'transfer',
+			address : '0x0000000000000000000000000000000000000000',
+			amount  : 10**6
+		}
+	]
 }
 ```
 

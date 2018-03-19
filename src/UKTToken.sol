@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 
 import "./shared/StandardToken.sol";
+import "./shared/BurnableToken.sol";
 import "./shared/AddressTools.sol";
 import "./shared/Ownable.sol";
 
@@ -10,7 +11,7 @@ import "./shared/Ownable.sol";
  * @title  Basic UKT token contract
  * @author  Oleg Levshin <levshin@ucoz-team.net>
  */
-contract UKTToken is StandardToken, Ownable {
+contract UKTToken is StandardToken, BurnableToken, Ownable {
 	
 	using AddressTools for address;
 	

@@ -3,6 +3,7 @@ const withDecimals = require('../utils/withDecimals.js')
 
 const {
 	token       : tokenConfig,
+	controller  : controllerConfig,
 	allocations : allocationsConfig
 } = require('../config/deploy/development.js')
 
@@ -78,17 +79,25 @@ describe('UKTTokenController', addresses => {
 		
 		assert.equal(icoAllocationAfter.toNumber(), 0, 'ICO allocation balance after do not match')
 		
-		const reserveAllocation = allocationsConfig.find(a => a.name === 'reserve')
-		const reserveAllocationBefore = reserveAllocation.amount
-		const reserveAllocationAfter = await TokenContract.balanceOf.call(reserveAllocation.address)
-		
-		assert.equal(
-			reserveAllocationAfter.toNumber(),
-			icoAllocationBefore.add(
-				withDecimals(reserveAllocationBefore, tokenConfig.decimals)
-			).toNumber(),
-			'Reserve allocation balance after do not match'
-		)
+		if (controllerConfig.finalizeType === 'transfer') {
+			
+			const finalizeTransferAllocation = allocationsConfig.find(
+				a => a.name === controllerConfig.finalizeTransferAddressType
+			)
+			const finalizeTransferAllocationBefore = finalizeTransferAllocation.amount
+			const finalizeTransferAllocationAfter = await TokenContract.balanceOf.call(
+				finalizeTransferAllocation.address
+			)
+			
+			assert.equal(
+				finalizeTransferAllocationAfter.toNumber(),
+				icoAllocationBefore.add(
+					withDecimals(finalizeTransferAllocationBefore, tokenConfig.decimals)
+				).toNumber(),
+				'Reserve allocation balance after do not match'
+			)
+			
+		}
 		
 		const lockedAddresses = allocationsConfig.filter(a => a.lock).map(a => a.address)
 		

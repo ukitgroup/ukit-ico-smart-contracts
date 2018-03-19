@@ -30,5 +30,7 @@ else
 fi
 
 yarn run ganache-cli  \
+	--hostname 0.0.0.0 \
+	--networkId 5777 \
 	$PORT_ARG \
 	$ACCOUNTS_ARG

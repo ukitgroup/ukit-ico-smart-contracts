@@ -1,7 +1,13 @@
 const Controller = artifacts.require('UKTTokenController')
 
-module.exports = async deployer => {
+module.exports = async (deployer, network, accounts) => {
 	
-	return await deployer.deploy(Controller)
+	const { config : { controller } } = global
+	
+	return await deployer.deploy(
+		Controller,
+		controller.finalizeType,
+		controller.finalizeTransferAddressType
+	)
 	
 }

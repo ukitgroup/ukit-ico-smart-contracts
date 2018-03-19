@@ -1,7 +1,7 @@
 const rpc = {
 	host       : '127.0.0.1',
 	port       : 8545,
-	network_id : '*',
+	network_id : 5777,
 	gas        : 2 * 10**6,
 	gasPrice   : 20 * 10**9
 }
