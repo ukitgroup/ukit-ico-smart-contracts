@@ -178,4 +178,24 @@ describe('UKTToken', addresses => {
 		
 	})
 	
+	it('Should not be able to transfer tokens to contract address without tokenFallback() method', async () => {
+		
+		try {
+			
+			const tx = await TokenContract.transfer(
+				ControllerContract.address,
+				withDecimals(10000, tokenConfig.decimals),
+				{
+					from : allocationsConfig.find(a => a.lock).address
+				}
+			)
+			
+			throw new Error('It should be not possible to transfer tokens to contract address without tokenFallback() method')
+			
+		} catch (error) {
+			assert.equal(error.message, 'VM Exception while processing transaction: revert')
+		}
+		
+	})
+	
 })
