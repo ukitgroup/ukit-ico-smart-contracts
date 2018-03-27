@@ -164,7 +164,7 @@ describe('UKTToken', addresses => {
 		
 		const timelockedTillDate = allocationsConfig.find(a => a.timelock).timelock
 		
-		increaseTime(timelockedTillDate - Math.floor(Date.now() / 1000))
+		await increaseTime(timelockedTillDate - Math.floor(Date.now() / 1000))
 		
 		const timelockedAddress = allocationsConfig.find(a => a.timelock).address
 		const toAddress = '0x2222222222222222222222222222222222222222'

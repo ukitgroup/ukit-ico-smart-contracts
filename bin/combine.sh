@@ -2,12 +2,14 @@
 
 PWD=$(pwd)
 
-COMBINED_FILES="UKTToken.combined.sol UKTTokenController.combined.sol"
+EXT=".sol"
+COMBINED_EXT=".combined$EXT"
+FILES="UKTToken UKTTokenController UKTTokenVotingFactory UKTTokenVoting"
 
 yarn run soljitsu combine --src-dir="$PWD"/src --dest-dir="$PWD"/build/combined && \
 
-for COMBINED_FILE in $COMBINED_FILES; do
-	cp -f "$PWD/build/combined/$COMBINED_FILE" "$PWD/contracts/"
+for FILE in $FILES; do
+	cp -f "$PWD/build/combined/$FILE$EXT" "$PWD/contracts/$FILE$COMBINED_EXT"
 done && \
 
 echo "Combined copying done!"

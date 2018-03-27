@@ -4,6 +4,7 @@ pragma solidity ^0.4.18;
 import './ERC223.sol';
 import './ERC223Reciever.sol';
 import './StandardToken.sol';
+
 import './AddressTools.sol';
 
 
@@ -17,18 +18,17 @@ contract ERC223Token is ERC223, StandardToken {
 	/**
 	 * @dev Makes execution of the token fallback method from if reciever address is contract
 	 */
-	function executeTokenFallback(address _to, uint _value, bytes _data) private returns (bool) {
+	function executeTokenFallback(address _to, uint256 _value, bytes _data) private returns (bool) {
 		ERC223Reciever receiver = ERC223Reciever(_to);
-		receiver.tokenFallback(msg.sender, _value, _data);
 		
-		return true;
+		return receiver.tokenFallback(msg.sender, _value, _data);
 	}
 	
 	
 	/**
 	 * @dev Makes execution of the tokens transfer method from super class
 	 */
-	function executeTransfer(address _to, uint _value, bytes _data) private returns (bool) {
+	function executeTransfer(address _to, uint256 _value, bytes _data) private returns (bool) {
 		require(super.transfer(_to, _value));
 		
 		if(_to.isContract()) {
@@ -51,7 +51,7 @@ contract ERC223Token is ERC223, StandardToken {
 	 * @param _value Amount of tokens that will be transferred
 	 * @param _data  Transaction metadata
 	 */
-	function transfer(address _to, uint _value, bytes _data) public returns (bool) {
+	function transfer(address _to, uint256 _value, bytes _data) public returns (bool) {
 		return executeTransfer(_to, _value, _data);
 	}
 	
@@ -65,7 +65,7 @@ contract ERC223Token is ERC223, StandardToken {
 	 * @param _to    Receiver address
 	 * @param _value Amount of tokens that will be transferred
 	 */
-	function transfer(address _to, uint _value) public returns (bool) {
+	function transfer(address _to, uint256 _value) public returns (bool) {
 		bytes memory _data;
 		
 		return executeTransfer(_to, _value, _data);

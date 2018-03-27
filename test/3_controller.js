@@ -26,6 +26,15 @@ describe('UKTTokenController', addresses => {
 	
 	it('Should distribute amounts to investors', async () => {
 		
+		const icoAllocation = allocationsConfig.find(a => a.name === 'ico').amount
+		
+		const contrBalanceInitial =  await TokenContract.balanceOf.call(await TokenContract.controller.call())
+		assert.equal(
+			contrBalanceInitial.toNumber(),
+			withDecimals(icoAllocation, tokenConfig.decimals),
+			'Initial controller balance do not match'
+		)
+		
 		const investorsAddresses = [
 			constants.investor1.address,
 			constants.investor2.address,
@@ -40,16 +49,7 @@ describe('UKTTokenController', addresses => {
 			0
 		)
 		
-		const icoAllocation = allocationsConfig.find(a => a.name === 'ico').amount
-		
-		const contrBalanceInitial =  await TokenContract.balanceOf.call(await TokenContract.controller.call())
-		assert.equal(
-			contrBalanceInitial.toNumber(),
-			withDecimals(icoAllocation, tokenConfig.decimals),
-			'Initial controller balance do not match'
-		)
-		
-		const tx = await ControllerContract.distribute(investorsAddresses, investorsAmounts, {
+		await ControllerContract.distribute(investorsAddresses, investorsAmounts, {
 			from : constants.owner.address
 		})
 		
