@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
 
-import "./shared/StandardToken.sol";
+import "./shared/ERC223Token.sol";
 import "./shared/BurnableToken.sol";
 import "./shared/AddressTools.sol";
 import "./shared/Ownable.sol";
@@ -11,7 +11,7 @@ import "./shared/Ownable.sol";
  * @title  Basic UKT token contract
  * @author  Oleg Levshin <levshin@ucoz-team.net>
  */
-contract UKTToken is StandardToken, BurnableToken, Ownable {
+contract UKTToken is ERC223Token, BurnableToken, Ownable {
 	
 	using AddressTools for address;
 	
@@ -183,16 +183,47 @@ contract UKTToken is StandardToken, BurnableToken, Ownable {
 	
 	
 	/**
+	 * @dev Checks that the sender's address is unlocked
+	 */
+	function isAddressUnlocked(address _address) private view returns (bool) {
+		return (
+			lockedAddresses[_address] == false &&
+			(
+				timelockedAddresses[_address] == 0 ||
+				timelockedAddresses[_address] <= now
+			)
+		);
+	}
+	
+	
+	/**
 	 * @dev Allows transfer of the tokens after locking conditions checking
 	 */
 	function transfer(
 		address _to,
 		uint256 _value
 	) public returns (bool) {
-		require(lockedAddresses[msg.sender] == false);
-		require(timelockedAddresses[msg.sender] == 0 || timelockedAddresses[msg.sender] <= now);
+		require(isAddressUnlocked(msg.sender));
 		
-		return super.transfer(_to, _value);
+		require(super.transfer(_to, _value));
+		
+		return true;
+	}
+	
+	
+	/**
+	 * @dev Allows transfer of the tokens (with additional _data) after locking conditions checking
+	 */
+	function transfer(
+		address _to,
+		uint256 _value,
+		bytes _data
+	) public returns (bool) {
+		require(isAddressUnlocked(msg.sender));
+		
+		require(super.transfer(_to, _value, _data));
+		
+		return true;
 	}
 	
 	
@@ -204,10 +235,11 @@ contract UKTToken is StandardToken, BurnableToken, Ownable {
 		address _to,
 		uint256 _value
 	) public returns (bool) {
-		require(lockedAddresses[_from] == false);
-		require(timelockedAddresses[_from] == 0 || timelockedAddresses[_from] <= now);
+		require(isAddressUnlocked(_from));
 		
-		return super.transferFrom(_from, _to, _value);
+		require(super.transferFrom(_from, _to, _value));
+		
+		return true;
 	}
 	
 }

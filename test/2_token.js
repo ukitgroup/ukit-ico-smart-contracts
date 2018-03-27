@@ -164,7 +164,7 @@ describe('UKTToken', addresses => {
 		
 		const timelockedTillDate = allocationsConfig.find(a => a.timelock).timelock
 		
-		increaseTime(timelockedTillDate - Math.floor(Date.now() / 1000))
+		await increaseTime(timelockedTillDate - Math.floor(Date.now() / 1000))
 		
 		const timelockedAddress = allocationsConfig.find(a => a.timelock).address
 		const toAddress = '0x2222222222222222222222222222222222222222'
@@ -175,6 +175,26 @@ describe('UKTToken', addresses => {
 		const balance = await TokenContract.balanceOf.call(toAddress)
 		
 		assert.equal(balance.toNumber(), amount, 'Balance of toAddress do not match')
+		
+	})
+	
+	it('Should not be able to transfer tokens to contract address without tokenFallback() method', async () => {
+		
+		try {
+			
+			const tx = await TokenContract.transfer(
+				ControllerContract.address,
+				withDecimals(10000, tokenConfig.decimals),
+				{
+					from : allocationsConfig.find(a => a.lock).address
+				}
+			)
+			
+			throw new Error('It should be not possible to transfer tokens to contract address without tokenFallback() method')
+			
+		} catch (error) {
+			assert.equal(error.message, 'VM Exception while processing transaction: revert')
+		}
 		
 	})
 	
