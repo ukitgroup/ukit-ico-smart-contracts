@@ -1,15 +1,52 @@
-const rpc = {
+const WalletProvider = require("truffle-wallet-provider")
+const Wallet         = require('ethereumjs-wallet')
+
+const development = {
 	host       : '127.0.0.1',
 	port       : 8545,
 	network_id : 5777,
-	gas        : 2 * 10**6,
-	gasPrice   : 20 * 10**9
+	gas        : process.env.TRUFFLE_GAS || 3 * 10**6,
+	gasPrice   : process.env.TRUFFLE_GAS_PRICE || 20 * 10**9
 }
 
+const infuraAccessToken = process.env.INFURA_ACCESS_TOKEN
+
+const infuraNetworks = ! infuraAccessToken ?
+	{} :
+		["ropsten", "rinkeby", "kovan", "mainnet"].reduce(
+			(result, network) => {
+				
+				const envForPrivateKey = `${network.toUpperCase()}_PRIVATE_KEY`
+				const privateKeyString = process.env[envForPrivateKey]
+				
+				if (privateKeyString) {
+					
+					const privateKey = Buffer.from(
+						privateKeyString.replace('0x', ''),
+						'hex'
+					)
+					const wallet = Wallet.fromPrivateKey(privateKey)
+					const provider = new WalletProvider(
+						wallet,
+						`https://${network}.infura.io/${infuraAccessToken}`
+					)
+					
+					result[network] = {
+						...development,
+						provider
+					}
+				}
+				
+				return result
+			},
+			{}
+		)
+
 module.exports = {
-	rpc,
+	rpc : development,
 	networks : {
-		development : rpc
+		...infuraNetworks,
+		development
 	},
 	solc : {
 		optimizer : {
