@@ -45,5 +45,4 @@ else
 	run_test $TEST_FILE
 fi
 
-rm ./build/contracts/*.json
-rm ./build/combined/*.sol
+yarn clear

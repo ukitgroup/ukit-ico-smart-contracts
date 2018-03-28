@@ -49,16 +49,16 @@ ukit-ico-smart-contracts
 └─── utils
 ```
 
-- **./bin/** -- executable command files
-- **./build/combined/** -- combined smart contracts files
-- **./build/contract/** -- smart contracts artifacts
-- **./config/deploy/** -- deployment configuration files (the name of each file must match the network name)
-- **./config/networks/** -- network configuration files (the name of each file must match the network name)
-- **./contracts/** -- combined smart contracts files
-- **./migrations/** -- migration files
-- **./src/** -- smart contracts sources
-- **./test/** -- testing files
-- **./utils/** -- utility files
+- **./bin/** &mdash; executable command files
+- **./build/combined/** &mdash; combined smart contracts files
+- **./build/contract/** &mdash; smart contracts artifacts
+- **./config/deploy/** &mdash; deployment configuration files (the name of each file must match the network name)
+- **./config/networks/** &mdash; network configuration files (the name of each file must match the network name)
+- **./contracts/** &mdash; combined smart contracts files
+- **./migrations/** &mdash; migration files
+- **./src/** &mdash; smart contracts sources
+- **./test/** &mdash; testing files
+- **./utils/** &mdash; utility files
 
 ## Installation
 
@@ -110,7 +110,7 @@ module.exports = {
 
 ### Deployment
 
-By default, project comes with deployment configuration for *development* network -- ***./config/deploy/development.js***.
+By default, project comes with deployment configuration for *development* network &mdash; ***./config/deploy/development.js***.
 
 | Property                                       | Required | Type       | Description
 | ---------------------------------------------- | :------: | :--------: | -----------
@@ -173,22 +173,33 @@ Example configuration may look like this:
 
 Before starting the deployment of smart contracts, you must have running Ethereum with enabled JSON-RPC option. The network configuration file should contain information about the connection to this node.
 
-To deploy on the *development* network, it is sufficient to execute the following commands:
+To deploy on the *development* network, you should run the following command:
 
-1. `yarn ganache` (in a separate tab) -- run Ganache
-2. `yarn migrate` -- combine the files of smart contracts, compile and deploy it
+1. `yarn ganache` (in a separate tab) &mdash; run Ganache
+2. `yarn migrate` &mdash; combine the files of smart contracts, compile and deploy it
 
-To deploy on a network other than *development*, you must run the following command:
+To deploy on a network other than *development* (files **./config/networks/<network_name>.js** and **./config/deploy/<network_name>.js** should exist):
 
 ```bash
 NETWORK=<network_name> yarn migrate
 ```
 
+Also, you can deploy contracts via [Infura](https://infura.io) (to [Ropsten](https://ropsten.etherscan.io/), [Rinkeby](https://rinkeby.etherscan.io/), [Kovan](https://kovan.etherscan.io/) or Mainnet networks) by running `yarn migrate` with additional (and required in that case) environment variables:
+
+```bash
+NETWORK=<network_name> \
+INFURA_ACCESS_TOKEN=<infura_access_token> \
+<NETWORK_NAME>_PRIVATE_KEY=<account_private_key> \
+yarn migrate
+```
+
+*Note:* in case of using [Infura](https://infura.io) you don't need a specific network configuration file, but file **./config/deploy/<network_name>.js** should exist.
+
 ## Testing
 
 Tests run by executing the command `yarn test` (and passes only on the network *development*). Tests of these smart contracts are both unit and integration.
 
-The command above executes the compilation `./bin/compile.sh` (preliminary combining the files of smart contracts using `./bin/combine.sh`), then -- for each test file, the private blockchain is launched with `./bin/ganache.sh`.
+The command above executes the compilation `./bin/compile.sh` (preliminary combining the files of smart contracts using `./bin/combine.sh`), then &mdash; for each test file, the private blockchain is launched with `./bin/ganache.sh`.
 
 Each test uses instances of smart contracts that are deployed once at the beginning of the file execution.
 
@@ -196,18 +207,42 @@ Please note that in the ***./test/*** directory only test files (which are execu
 
 ## Command reference
 
-* `yarn combine` -- combining of smart contract sources to the ***./build/combined/*** directory and moving the combined files (specified in the `COMBINED_FILES` variable from ***./bin/combine.sh*** -- *UKTToken.combined.sol* and *UKTTokenController.combined.sol*) to the ***./contracts/*** directory
+* `yarn combine` &mdash; combining of smart contract sources to the ***./build/combined/*** directory and moving the combined files (specified in the `COMBINED_FILES` variable from ***./bin/combine.sh*** &mdash; *UKTToken.combined.sol* and *UKTTokenController.combined.sol*) to the ***./contracts/*** directory
 
-* `[NETWORK=<network_name>] yarn compile` -- compilation of smart contracts from the ***./contracts/*** directory and subsequent deletion of files *./contracts/\*.combined.sol*
+* `yarn compile` &mdash; compilation of smart contracts from the ***./contracts/*** directory and subsequent deletion of files *./contracts/\*.combined.sol*
 
-* `[NETWORK=<network_name>] yarn migrate` -- combining, compilation and deployment of smart contracts in the specified network
+	* `NETWORK=<network_name>`
 
-* `[PORT=<port_number>] yarn ganache` -- starting private blockchain (accounts are read from file ***./utils/constants.json***)
+* `yarn migrate` &mdash; combining, compilation and deployment of smart contracts in the specified network
 
-* `yarn test` -- start testing in the *development* network
+	* `NETWORK=<network_name>`
+	* `TRUFFLE_GAS=<gas_limit>`
+	* `TRUFFLE_GAS_PRICE=<gas_price_in_wei>`
+	* `INFURA_ACCESS_TOKEN=<infura_access_token>`
+	* `<INFURA_NETWORK_NAME>_PRIVATE_KEY=<account_private_key>`
+
+* `yarn ganache` &mdash; starting private blockchain (accounts are read from file ***./utils/constants.json***)
+
+	* `PORT=<port_number>`
+
+* `yarn test [<test_file_name>]` &mdash; start testing in the *development* network
+
+* `yarn clear` &mdash; clear all combined and compiled files
 
 ## Contracts on Etherscan
 
-Token address: [0x0000000000000000000000000000000000000000](https://etherscan.io/token/0x0000000000000000000000000000000000000000#readContract)
+### Kovan
 
-Token controller address: [0x0000000000000000000000000000000000000000](https://etherscan.io/token/0x0000000000000000000000000000000000000000#readContract)
+Token address: [0x2c794da9156fd0bccc3197f00875abed63370341](https://etherscan.io/address/0x2c794da9156fd0bccc3197f00875abed63370341)
+
+Token controller address: [0x97e080dd6345ac011a726280483f09f8df18b0e5](https://etherscan.io/address/0x97e080dd6345ac011a726280483f09f8df18b0e5)
+
+Token voting factory address: [0xdc4c172f2722a5728783b62414e519bb2ecd915c](https://etherscan.io/address/0xdc4c172f2722a5728783b62414e519bb2ecd915c)
+
+### Mainnet
+
+Token address: [0x0000000000000000000000000000000000000000](https://etherscan.io/address/0x0000000000000000000000000000000000000000)
+
+Token controller address: [0x0000000000000000000000000000000000000000](https://etherscan.io/address/0x0000000000000000000000000000000000000000)
+
+Token voting factory address: [0x0000000000000000000000000000000000000000](https://etherscan.io/address/0x0000000000000000000000000000000000000000)

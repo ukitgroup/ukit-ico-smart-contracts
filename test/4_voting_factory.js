@@ -1,6 +1,7 @@
-const constants = require('../utils/constants.json')
+const constants    = require('../utils/constants.json')
 const increaseTime = require('../utils/increaseTime.js')
 const withDecimals = require('../utils/withDecimals.js')
+const delay        = require('nanodelay')
 
 const web3EthAbi = require('web3-eth-abi')
 const ERC223TrasnferAbi = {
@@ -36,7 +37,7 @@ const ERC223TransactionData = (_to, _value, _data) => web3EthAbi.encodeFunctionC
 )
 
 const {
-	token       : tokenConfig
+	token : tokenConfig
 } = require('../config/deploy/development.js')
 
 const Token = artifacts.require('UKTToken')
@@ -62,11 +63,11 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 	)
 	
 	const transferERC223TokensToVotingContract = async (from, _value, _data) => await web3.eth.sendTransaction({
-		from     : from,
-		to       : TokenContract.address,
-		value    : 0,
-		gas      : 3 * 10**5,
-		data     : ERC223TransactionData(
+		from  : from,
+		to    : TokenContract.address,
+		value : 0,
+		gas   : 3 * 10**5,
+		data  : ERC223TransactionData(
 			VotingContract.address,
 			new web3.BigNumber(withDecimals(_value, tokenConfig.decimals)),
 			web3.fromUtf8(_data)
@@ -78,13 +79,15 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		ControllerContract = await Controller.deployed()
 		VotingFactoryContract = await VotingFactory.deployed()
 		
+		await delay(100)
+		
 		await ControllerContract.distribute(investors, investorsAmounts, {
 			from : constants.owner.address
 		})
 	})
 	
 	beforeEach(async () => {
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await delay(100)
 	})
 	
 	it('Should create new voting', async () => {

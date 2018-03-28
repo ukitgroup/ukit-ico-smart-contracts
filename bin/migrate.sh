@@ -2,8 +2,6 @@
 
 ./bin/combine.sh && \
 
-PWD=$(pwd)
-
 export DEBUG=deploy
 
 if [[ -z "${NETWORK}" ]]; then
@@ -14,4 +12,4 @@ fi
 
 yarn run truffle migrate --reset --compile-all $NETWORK_ARG
 
-rm "$PWD"/contracts/*.combined.sol 2>/dev/null
+yarn clear
