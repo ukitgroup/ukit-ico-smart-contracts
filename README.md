@@ -233,11 +233,11 @@ Please note that in the ***./test/*** directory only test files (which are execu
 
 ### Kovan
 
-Token address: [0x2c794da9156fd0bccc3197f00875abed63370341](https://etherscan.io/address/0x2c794da9156fd0bccc3197f00875abed63370341)
+Token address: [0x2c794da9156fd0bccc3197f00875abed63370341](https://kovan.etherscan.io/address/0x2c794da9156fd0bccc3197f00875abed63370341)
 
-Token controller address: [0x97e080dd6345ac011a726280483f09f8df18b0e5](https://etherscan.io/address/0x97e080dd6345ac011a726280483f09f8df18b0e5)
+Token controller address: [0x97e080dd6345ac011a726280483f09f8df18b0e5](https://kovan.etherscan.io/address/0x97e080dd6345ac011a726280483f09f8df18b0e5)
 
-Token voting factory address: [0xdc4c172f2722a5728783b62414e519bb2ecd915c](https://etherscan.io/address/0xdc4c172f2722a5728783b62414e519bb2ecd915c)
+Token voting factory address: [0xdc4c172f2722a5728783b62414e519bb2ecd915c](https://kovan.etherscan.io/address/0xdc4c172f2722a5728783b62414e519bb2ecd915c)
 
 ### Mainnet
 
