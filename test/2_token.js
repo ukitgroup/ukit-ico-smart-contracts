@@ -1,4 +1,4 @@
-const constants = require('../utils/constants.json')
+const constants    = require('../utils/constants.json')
 const increaseTime = require('../utils/increaseTime.js')
 const withDecimals = require('../utils/withDecimals.js')
 
@@ -21,7 +21,7 @@ describe('UKTToken', addresses => {
 	})
 	
 	beforeEach(async () => {
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await require('nanodelay')(100)
 	})
 	
 	it('Should be controlled', async () => {

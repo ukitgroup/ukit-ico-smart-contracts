@@ -1,4 +1,4 @@
-const constants = require('../utils/constants.json')
+const constants    = require('../utils/constants.json')
 const withDecimals = require('../utils/withDecimals.js')
 
 const {
@@ -21,7 +21,7 @@ describe('UKTTokenController', addresses => {
 	})
 	
 	beforeEach(async () => {
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await require('nanodelay')(100)
 	})
 	
 	it('Should distribute amounts to investors', async () => {

@@ -5,5 +5,5 @@ module.exports = async addSeconds => {
 		params: [addSeconds], id: 0
 	})
 	
-	await new Promise(resolve => setTimeout(resolve, 900))
+	await require('nanodelay')(900)
 }

@@ -11,7 +11,7 @@ describe('Ownable', addresses => {
 	})
 	
 	beforeEach(async () => {
-		await new Promise(resolve => setTimeout(resolve, 100))
+		await require('nanodelay')(100)
 	})
 	
 	it('Should verify initial owner', async () => {
