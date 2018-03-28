@@ -28,6 +28,7 @@
 		"compile": "./bin/compile.sh",
 		"migrate": "./bin/migrate.sh",
 		"ganache": "./bin/ganache.sh",
+		"clear": "./bin/clear.sh",
 		"test": "./bin/test.sh"
 	}
 }
