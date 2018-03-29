@@ -14,8 +14,9 @@ contract UKTTokenVotingFactory is Ownable {
 	address[] public votings;
 	mapping(address => int256) public votingsWinners;
 	
-	event NewVoting(address indexed votingAddress);
+	event VotingCreated(address indexed votingAddress, uint256 dateEnd, bytes32[] proposals, address[] acceptedTokens, uint256[] acceptedTokensValues);
 	event WinnerSetted(address indexed votingAddress, uint256 winnerIdx, bytes32 winner, uint256 winnerWeight);
+	event VotingFinalized(address indexed votingAddress, bool isFinalizedValidly);
 	
 	
 	/**
@@ -36,25 +37,35 @@ contract UKTTokenVotingFactory is Ownable {
 	 * @dev Creates new instance of UKTTokenVoting contract with given params
 	 */
 	function getNewVoting(
-		bytes32[] _proposals,
-		uint256 _tokensValuePerVote,
-		uint256 _dateEnd,
-		address[] tokenContractsAddresses
+		uint256 dateEnd,
+		bytes32[] proposals,
+		address[] acceptedTokens,
+		uint256[] acceptedTokensValues
 	) public onlyOwner returns (address votingAddress) {
 		
 		votingAddress = address(new UKTTokenVoting(
-			_proposals,
-			_tokensValuePerVote,
-			_dateEnd,
-			tokenContractsAddresses
+			dateEnd,
+			proposals,
+			acceptedTokens,
+			acceptedTokensValues
 		));
 		
-		NewVoting(votingAddress);
+		VotingCreated(votingAddress, dateEnd, proposals, acceptedTokens, acceptedTokensValues);
 		
 		votings.push(votingAddress);
 		votingsWinners[votingAddress] = -1;
 		
 		return votingAddress;
+	}
+	
+	
+	/**
+	 * @dev Refunds tokens for all voters
+	 */
+	function refundVotingTokens(address votingAddress, address to) public onlyOwner returns (bool) {
+		require(isValidVoting(votingAddress));
+		
+		return UKTTokenVoting(votingAddress).refundTokens(to);
 	}
 	
 	
@@ -65,7 +76,12 @@ contract UKTTokenVotingFactory is Ownable {
 		require(votingsWinners[votingAddress] == -1);
 		
 		var (winnerIdx, winner, winnerWeight) = UKTTokenVoting(votingAddress).getWinner();
-		require(winnerIdx > 0);
+		
+		bool isFinalizedValidly = winnerIdx > 0;
+		
+		UKTTokenVoting(votingAddress).finalize(isFinalizedValidly);
+		
+		VotingFinalized(votingAddress, isFinalizedValidly);
 		
 		votingsWinners[votingAddress] = int256(winnerIdx);
 		
@@ -74,20 +90,10 @@ contract UKTTokenVotingFactory is Ownable {
 	
 	
 	/**
-	 * @dev Refunds tokens for all voters
-	 */
-	function refundVotingTokens(address votingAddress) public onlyOwner returns (bool) {
-		require(isValidVoting(votingAddress));
-		
-		return UKTTokenVoting(votingAddress).refundTokens();
-	}
-	
-	
-	/**
 	 * @dev Gets voting winner
 	 */
 	function getVotingWinner(address votingAddress) public view returns (bytes32) {
-		require(votingsWinners[votingAddress] > 0);
+		require(votingsWinners[votingAddress] > -1);
 		
 		return UKTTokenVoting(votingAddress).proposals(uint256(votingsWinners[votingAddress]));
 	}

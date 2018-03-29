@@ -92,16 +92,16 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 	
 	it('Should create new voting', async () => {
 		
-		const _proposals = [ "proposal 1", "proposal 2", "proposal 3" ]
-		const _tokensValuePerVote = withDecimals(10000, tokenConfig.decimals)
 		const _dateEnd = 1670792400
+		const _proposals = [ "proposal 1", "proposal 2", "proposal 3" ]
 		const _acceptedTokens = [ TokenContract.address ]
+		const _acceptedTokensValues = [ withDecimals(10000, tokenConfig.decimals) ]
 		
 		const tx =  await VotingFactoryContract.getNewVoting(
-			_proposals,
-			_tokensValuePerVote,
 			_dateEnd,
-			_acceptedTokens
+			_proposals,
+			_acceptedTokens,
+			_acceptedTokensValues
 		)
 		
 		const votingAddress = tx.logs[0].args.votingAddress
@@ -110,12 +110,13 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		
 		VotingContract = await Voting.at(votingAddress)
 		
-		const notValidProposal = await VotingContract.proposals.call(0)
-		const tokensValuePerVote = await VotingContract.tokensValuePerVote.call()
 		const dateEnd = await VotingContract.dateEnd.call()
+		const notValidProposal = await VotingContract.proposals.call(0)
 		const acceptedToken = await VotingContract.acceptedTokens.call(TokenContract.address)
+		const acceptedTokenValue = await VotingContract.acceptedTokensValues.call(TokenContract.address)
 		
-		assert.equal(notValidProposal, web3.sha3('not valid proposal'), 'Not valid proposal do not match')
+		assert.equal(dateEnd, _dateEnd, 'Date end do not match')
+		assert.equal(web3.toUtf8(notValidProposal), 'Not valid proposal', 'Not valid proposal do not match')
 		const proposals = await Promise.all(
 			_proposals.map(
 				async (p, idx) => await VotingContract.proposals.call(idx + 1)
@@ -124,9 +125,8 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		for(const idx in _proposals) {
 			assert.equal(web3.toUtf8(proposals[idx]), _proposals[idx], 'Valid proposal do not match')
 		}
-		assert.equal(tokensValuePerVote.toNumber(), _tokensValuePerVote, 'Token value per vote')
-		assert.equal(dateEnd, _dateEnd, 'Date end do not match')
 		assert.equal(acceptedToken, true, 'Accepted token do not match')
+		assert.equal(acceptedTokenValue.toNumber(), _acceptedTokensValues[0], 'Token value per vote')
 		
 	})
 	
@@ -156,14 +156,32 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		}
 	})
 	
-	it('Should not accept tokens from one voter more than once', async () => {
+	it('Should accept tokens and store vote', async () => {
 		
+		// investor3 sends tokens amount of 1 vote for "proposal 3"
 		await transferERC223TokensToVotingContract(constants.investor2.address, 10000, '3')
 		assert.equal(
-			(await VotingContract.totalVotes.call(3)).toNumber(),
+			(await VotingContract.proposalsWeights.call(3)).toNumber(),
 			1, 'Total votes for proposal 3 do not match'
 		)
 		
+		// investor3 sends tokens amount of 2 votes for "proposal 1"
+		await transferERC223TokensToVotingContract(constants.investor3.address, 20000, '1')
+		assert.equal(
+			(await VotingContract.proposalsWeights.call(1)).toNumber(),
+			2, 'Total votes for proposal 1 do not match'
+		)
+		
+		// investor4 sends tokens amount of 1 vote for "proposal 2"
+		await transferERC223TokensToVotingContract(constants.investor4.address, 15000, '2')
+		assert.equal(
+			(await VotingContract.proposalsWeights.call(2)).toNumber(),
+			1, 'Total votes for proposal 2 do not match'
+		)
+		
+	})
+	
+	it('Should not accept tokens from one voter more than once', async () => {
 		try {
 			
 			await transferERC223TokensToVotingContract(constants.investor2.address, 10000, '3')
@@ -173,24 +191,6 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		} catch (error) {
 			assert.equal(error.message, 'VM Exception while processing transaction: revert')
 		}
-	})
-	
-	it('Should accept tokens and store vote', async () => {
-		
-		// investor3 sends tokens amount of 2 votes for "proposal 1"
-		await transferERC223TokensToVotingContract(constants.investor3.address, 20000, '1')
-		assert.equal(
-			(await VotingContract.totalVotes.call(1)).toNumber(),
-			2, 'Total votes for proposal 1 do not match'
-		)
-		
-		// investor4 sends tokens amount of 1 vote for "proposal 2"
-		await transferERC223TokensToVotingContract(constants.investor4.address, 15000, '2')
-		assert.equal(
-			(await VotingContract.totalVotes.call(2)).toNumber(),
-			1, 'Total votes for proposal 2 do not match'
-		)
-		
 	})
 	
 	it('Should not set voting winner before voting end', async () => {
@@ -219,13 +219,15 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		}
 	})
 	
-	it('Should set and get voting winner', async () => {
+	it('Should set voting winner and finalize it', async () => {
 		
 		await VotingFactoryContract.setVotingWinner(VotingContract.address)
 		
-		const winnerProposal = await VotingFactoryContract.getVotingWinner.call(VotingContract.address)
+		const isFinalized = await VotingContract.isFinalized.call()
+		const isFinalizedValidly = await VotingContract.isFinalizedValidly.call()
 		
-		assert.equal(web3.toUtf8(winnerProposal), 'proposal 1', 'Winner proposal do not match')
+		assert.isTrue(isFinalized, 'Finalization flag do not match')
+		assert.isTrue(isFinalizedValidly, 'Finalization validity flag do not match')
 		
 	})
 	
@@ -239,6 +241,14 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		} catch (error) {
 			assert.equal(error.message, 'VM Exception while processing transaction: revert')
 		}
+	})
+	
+	it('Should get voting winner', async () => {
+		
+		const winnerProposal = await VotingFactoryContract.getVotingWinner.call(VotingContract.address)
+		
+		assert.equal(web3.toUtf8(winnerProposal), 'proposal 1', 'Winner proposal do not match')
+		
 	})
 	
 	it('Should not claim tokens from non voter', async () => {
@@ -258,14 +268,22 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 	it('Should claim and refund tokens', async () => {
 		await VotingContract.claimTokens({ from : constants.investor2.address })
 		
-		await VotingFactoryContract.refundVotingTokens(VotingContract.address)
+		await VotingFactoryContract.refundVotingTokens(
+			VotingContract.address,
+			constants.investor3.address
+		)
+		
+		await VotingFactoryContract.refundVotingTokens(
+			VotingContract.address,
+			'0x0'
+		)
 		
 		for(const idx in investors) {
 			const balanceOf = await TokenContract.balanceOf.call(investors[idx])
 			assert.equal(
 				balanceOf.toNumber(),
 				withDecimals(investorsAmounts[idx], tokenConfig.decimals),
-				`Investor ${idx} balanceOf do not match`
+				`Investor ${constants[`investor${parseInt(idx) + 1}`].address} balanceOf do not match`
 			)
 		}
 	})
