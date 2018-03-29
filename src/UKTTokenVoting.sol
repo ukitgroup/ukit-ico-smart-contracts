@@ -23,49 +23,54 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		uint256 tokensValue;
 		uint256 weight;
 		address tokenContractAddress;
+		uint256 blockNumber;
 	}
 	
 	mapping(address => bool) public acceptedTokens;
-	uint256 public tokensValuePerVote;
+	mapping(address => uint256) public acceptedTokensValues;
 	
 	bytes32[] public proposals;
-	mapping (uint256 => uint256) public totalVotes;
+	mapping (uint256 => uint256) public proposalsWeights;
 	
 	uint256 public dateStart;
 	uint256 public dateEnd;
 	
-	mapping (address => Vote) public votes;
 	address[] public voters;
+	mapping (address => Vote) public votes;
 	
-	event NewVote(address indexed voter, uint256 proposalIdx);
+	bool public isFinalized = false;
+	bool public isFinalizedValidly = false;
+	
+	event NewVote(address indexed voter, uint256 proposalIdx, uint256 proposalWeight);
 	event TokensClaimed(address to);
 	event TokensRefunded(address to);
 	
 	
 	function UKTTokenVoting(
-		bytes32[] _proposals,
-		uint256 _tokensValuePerVote,
 		uint256 _dateEnd,
-		address[] tokenContractsAddresses
+		bytes32[] _proposals,
+		address[] _acceptedTokens,
+		uint256[] _acceptedTokensValues
 	) public {
-		require(_proposals.length > 1);
-		require(_tokensValuePerVote > 0);
 		require(_dateEnd > now);
-		require(tokenContractsAddresses.length > 0);
+		require(_proposals.length > 1);
+		require(_acceptedTokens.length > 0);
+		require(_acceptedTokensValues.length > 0);
+		require(_acceptedTokens.length == _acceptedTokensValues.length);
 		
-		proposals.push(keccak256("not valid proposal"));
-		totalVotes[0] = 0;
-		for(uint256 i = 0; i < _proposals.length; i++) {
-			proposals.push(_proposals[i]);
-			totalVotes[i+1] = 0;
-		}
-		
-		tokensValuePerVote = _tokensValuePerVote;
 		dateStart = now;
 		dateEnd = _dateEnd;
 		
-		for(uint256 j = 0; j < tokenContractsAddresses.length; j++) {
-			acceptedTokens[tokenContractsAddresses[j]] = true;
+		proposals.push("Not valid proposal");
+		proposalsWeights[0] = 0;
+		for(uint256 i = 0; i < _proposals.length; i++) {
+			proposals.push(_proposals[i]);
+			proposalsWeights[i+1] = 0;
+		}
+		
+		for(uint256 j = 0; j < _acceptedTokens.length; j++) {
+			acceptedTokens[_acceptedTokens[j]] = true;
+			acceptedTokensValues[_acceptedTokens[j]] = _acceptedTokensValues[j];
 		}
 	}
 	
@@ -89,7 +94,8 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 			votes[_address].proposalIdx == 0 &&
 			votes[_address].tokensValue == 0 &&
 			votes[_address].weight == 0 &&
-			votes[_address].tokenContractAddress == address(0)
+			votes[_address].tokenContractAddress == address(0) &&
+			votes[_address].blockNumber == 0
 		);
 	}
 	
@@ -110,14 +116,14 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		uint256 _value,
 		bytes _data
 	) external returns (bool) {
-		// executed from contract in acceptedTokens
-		require(acceptedTokens[msg.sender] == true);
-		
 		// voting hasn't ended yet
 		require(now < dateEnd);
 		
+		// executed from contract in acceptedTokens
+		require(acceptedTokens[msg.sender] == true);
+		
 		// value of tokens is enough for voting
-		require(_value >= tokensValuePerVote);
+		require(_value >= acceptedTokensValues[msg.sender]);
 		
 		// give proposal index is valid
 		uint256 proposalIdx = _data.parseInt();
@@ -126,14 +132,14 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		// user hasn't voted yet
 		require(isAddressNotVoted(_from));
 		
-		uint256 weight = _value.div(tokensValuePerVote);
+		uint256 weight = _value.div(acceptedTokensValues[msg.sender]);
 		
-		votes[_from] = Vote(proposalIdx, _value, weight, msg.sender);
+		votes[_from] = Vote(proposalIdx, _value, weight, msg.sender, block.number);
 		voters.push(_from);
 		
-		totalVotes[proposalIdx] += weight;
+		proposalsWeights[proposalIdx] += weight;
 		
-		NewVote(_from, proposalIdx);
+		NewVote(_from, proposalIdx, proposalsWeights[proposalIdx]);
 		
 		return true;
 	}
@@ -147,17 +153,45 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		
 		winnerIdx = 0;
 		winner = proposals[winnerIdx];
-		winnerWeight = totalVotes[winnerIdx];
+		winnerWeight = proposalsWeights[winnerIdx];
 		
 		for(uint256 i = 1; i < proposals.length; i++) {
-			if(totalVotes[i] >= winnerWeight) {
+			if(proposalsWeights[i] >= winnerWeight) {
 				winnerIdx = i;
 				winner = proposals[winnerIdx];
-				winnerWeight = totalVotes[i];
+				winnerWeight = proposalsWeights[i];
+			}
+		}
+		
+		if (winnerIdx > 0) {
+			bool hasAnotherWinners = false;
+			
+			for(uint256 j = 1; j < proposals.length; j++) {
+				hasAnotherWinners = (
+					j != winnerIdx &&
+					proposalsWeights[j] == proposalsWeights[winnerIdx]
+				);
+				
+				if(hasAnotherWinners) break;
+			}
+			
+			if (hasAnotherWinners) {
+				return (0, proposals[0], proposalsWeights[0]);
 			}
 		}
 		
 		return (winnerIdx, winner, winnerWeight);
+	}
+	
+	
+	/**
+	 * @dev Finalizes voting
+	 */
+	function finalize(bool _isFinalizedValidly) external onlyOwner {
+		require(now > dateEnd);
+		
+		isFinalized = true;
+		isFinalizedValidly = _isFinalizedValidly;
 	}
 	
 	
@@ -181,7 +215,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 * @dev Allows voter to claim his tokens back to address
 	 */
 	function claimTokens() public returns (bool) {
-		require(now > dateEnd);
+		require(isFinalized);
 		require(isAddressVoted(msg.sender));
 		
 		require(transferTokens(msg.sender));
@@ -192,12 +226,27 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	
 	
 	/**
+	 * @dev Refunds tokens to particular address
+	 */
+	function _refundTokens(address to) private returns (bool) {
+		require(transferTokens(to));
+		
+		TokensRefunded(to);
+		
+		return true;
+	}
+	
+	
+	/**
 	 * @dev Refunds tokens for all voters
 	 */
-	function refundTokens() public onlyOwner returns (bool) {
+	function refundTokens(address to) public onlyOwner returns (bool) {
+		if(to != address(0)) {
+			return _refundTokens(to);
+		}
+		
 		for(uint256 i = 0; i < voters.length; i++) {
-			require(transferTokens(voters[i]));
-			TokensRefunded(voters[i]);
+			_refundTokens(voters[i]);
 		}
 		
 		return true;
