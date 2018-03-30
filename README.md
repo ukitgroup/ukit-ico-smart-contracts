@@ -237,7 +237,7 @@ Token address: [0x2c794da9156fd0bccc3197f00875abed63370341](https://kovan.ethers
 
 Token controller address: [0x97e080dd6345ac011a726280483f09f8df18b0e5](https://kovan.etherscan.io/address/0x97e080dd6345ac011a726280483f09f8df18b0e5)
 
-Token voting factory address: [0x8e50ddecc68c08bf92fa599ff196079995a4031f](https://kovan.etherscan.io/address/0x8e50ddecc68c08bf92fa599ff196079995a4031f)
+Token voting factory address: [0x655f0e28f431c01d38a2a00d94fce4cc94f0fda3](https://kovan.etherscan.io/address/0x655f0e28f431c01d38a2a00d94fce4cc94f0fda3)
 
 ### Mainnet
 

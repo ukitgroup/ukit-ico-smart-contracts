@@ -3,7 +3,6 @@ pragma solidity ^0.4.18;
 
 import "./shared/Ownable.sol";
 import "./shared/ERC223Reciever.sol";
-import './shared/StandardToken.sol';
 
 import "./shared/SafeMath.sol";
 import "./shared/BytesTools.sol";
@@ -137,7 +136,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		votes[_from] = Vote(proposalIdx, _value, weight, msg.sender, block.number);
 		voters.push(_from);
 		
-		proposalsWeights[proposalIdx] += weight;
+		proposalsWeights[proposalIdx] = proposalsWeights[proposalIdx].add(weight);
 		
 		NewVote(_from, proposalIdx, proposalsWeights[proposalIdx]);
 		
@@ -149,7 +148,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 * @dev Gets winner tuple after voting is finished
 	 */
 	function getWinner() external view returns (uint256 winnerIdx, bytes32 winner, uint256 winnerWeight) {
-		require(now > dateEnd);
+		require(now >= dateEnd);
 		
 		winnerIdx = 0;
 		winner = proposals[winnerIdx];
@@ -164,19 +163,10 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		}
 		
 		if (winnerIdx > 0) {
-			bool hasAnotherWinners = false;
-			
 			for(uint256 j = 1; j < proposals.length; j++) {
-				hasAnotherWinners = (
-					j != winnerIdx &&
-					proposalsWeights[j] == proposalsWeights[winnerIdx]
-				);
-				
-				if(hasAnotherWinners) break;
-			}
-			
-			if (hasAnotherWinners) {
-				return (0, proposals[0], proposalsWeights[0]);
+				if(j != winnerIdx && proposalsWeights[j] == proposalsWeights[winnerIdx]) {
+					return (0, proposals[0], proposalsWeights[0]);
+				}
 			}
 		}
 		
@@ -188,7 +178,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 * @dev Finalizes voting
 	 */
 	function finalize(bool _isFinalizedValidly) external onlyOwner {
-		require(now > dateEnd);
+		require( ! isFinalized && now >= dateEnd);
 		
 		isFinalized = true;
 		isFinalizedValidly = _isFinalizedValidly;
@@ -207,7 +197,12 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		}
 		votes[to].tokensValue = 0;
 		
-		return StandardToken(vote.tokenContractAddress).transfer(to, vote.tokensValue);
+		if ( ! isFinalized) {
+			votes[to] = Vote(0, 0, 0, address(0), 0);
+			proposalsWeights[vote.proposalIdx] = proposalsWeights[vote.proposalIdx].sub(vote.weight);
+		}
+		
+		return vote.tokenContractAddress.call(bytes4(keccak256('transfer(address,uint256)')), to, vote.tokensValue);
 	}
 	
 	
@@ -215,7 +210,6 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 * @dev Allows voter to claim his tokens back to address
 	 */
 	function claimTokens() public returns (bool) {
-		require(isFinalized);
 		require(isAddressVoted(msg.sender));
 		
 		require(transferTokens(msg.sender));
@@ -230,7 +224,6 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 */
 	function _refundTokens(address to) private returns (bool) {
 		require(transferTokens(to));
-		
 		TokensRefunded(to);
 		
 		return true;

@@ -172,11 +172,31 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 			2, 'Total votes for proposal 1 do not match'
 		)
 		
-		// investor4 sends tokens amount of 1 vote for "proposal 2"
-		await transferERC223TokensToVotingContract(constants.investor4.address, 15000, '2')
+		// investor4 sends tokens amount of 3 votes for "proposal 2"
+		await transferERC223TokensToVotingContract(constants.investor4.address, 35000, '2')
 		assert.equal(
 			(await VotingContract.proposalsWeights.call(2)).toNumber(),
-			1, 'Total votes for proposal 2 do not match'
+			3, 'Total votes for proposal 2 do not match'
+		)
+		
+	})
+	
+	it('Should claim tokens from voter and reduce proposal weight', async () => {
+		
+		await VotingContract.claimTokens({ from : constants.investor4.address })
+		assert.equal(
+			(await VotingContract.proposalsWeights.call(2)).toNumber(),
+			0, 'Total votes for proposal 2 do not match'
+		)
+		
+	})
+	
+	it('Should accept claimed tokens back and store vote', async () => {
+		
+		await transferERC223TokensToVotingContract(constants.investor4.address, 35000, '2')
+		assert.equal(
+			(await VotingContract.proposalsWeights.call(2)).toNumber(),
+			3, 'Total votes for proposal 2 do not match'
 		)
 		
 	})
@@ -187,6 +207,20 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 			await transferERC223TokensToVotingContract(constants.investor2.address, 10000, '3')
 			
 			throw new Error(`Tokens from one voter ${constants.investor2.address} should not be accepted more than once`)
+			
+		} catch (error) {
+			assert.equal(error.message, 'VM Exception while processing transaction: revert')
+		}
+	})
+	
+	it('Should not claim tokens from non voter', async () => {
+		try {
+			
+			await VotingContract.claimTokens({
+				from : constants.investor1.address
+			})
+			
+			throw new Error(`Only voter should be able to claim his tokens`)
 			
 		} catch (error) {
 			assert.equal(error.message, 'VM Exception while processing transaction: revert')
@@ -247,26 +281,11 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		
 		const winnerProposal = await VotingFactoryContract.getVotingWinner.call(VotingContract.address)
 		
-		assert.equal(web3.toUtf8(winnerProposal), 'proposal 1', 'Winner proposal do not match')
+		assert.equal(web3.toUtf8(winnerProposal), 'proposal 2', 'Winner proposal do not match')
 		
 	})
 	
-	it('Should not claim tokens from non voter', async () => {
-		try {
-			
-			await VotingContract.claimTokens({
-				from : constants.investor1.address
-			})
-			
-			throw new Error(`Only voter should be able to claim his tokens`)
-			
-		} catch (error) {
-			assert.equal(error.message, 'VM Exception while processing transaction: revert')
-		}
-	})
-	
 	it('Should claim and refund tokens', async () => {
-		await VotingContract.claimTokens({ from : constants.investor2.address })
 		
 		await VotingFactoryContract.refundVotingTokens(
 			VotingContract.address,
@@ -286,6 +305,7 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 				`Investor ${constants[`investor${parseInt(idx) + 1}`].address} balanceOf do not match`
 			)
 		}
+		
 	})
 	
 })
