@@ -1,0 +1,17 @@
+{
+	"presets": [
+		[
+			"env",
+			{
+				"targets": {
+					"browsers":  "last 1 Chrome version"
+				}
+			}
+		]
+	],
+	"plugins": [
+		"transform-es2015-destructuring",
+		"transform-es2015-parameters",
+		"transform-object-rest-spread"
+	]
+}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>uKit ICO Smart Contracts web3.js app demo </title>
+</head>
+
+<body>
+	
+	<div id="MetamaskNotInjectedModal" class="modal" style="display: none">
+		<div class="modal-background"></div>
+		<div class="modal-content">
+			<div class="box js-metamask-not-injected-modal-content">
+			</div>
+		</div>
+	</div>
+	
+	<section id="UKTTokenController" class="section" style="display: none">
+		
+		<div class="container">
+			<h2 class="subtitle"><strong>UKTTokenController</strong> - distribution of tokens and ICO finalization</h2>
+		
+			<nav class="level">
+				<div class="level-item has-text-centered">
+					<div>
+						<p class="heading">Total Supply</p>
+						<p class="title"><span id="UKTTokenController-stat-total-sup">0</span> UKT</p>
+					</div>
+				</div>
+				<div class="level-item has-text-centered">
+					<div>
+						<p class="heading">ICO Allocation</p>
+						<p class="title"><span id="UKTTokenController-stat-ico-alloc">0</span> UKT</p>
+					</div>
+				</div>
+			</nav>
+			
+			<table id="UKTTokenController-token-holders-table" class="table is-fullwidth">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Holder address</th>
+						<th>Available balance</th>
+						<th>Actual balance</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+				<tfoot>
+					<tr>
+						<th colspan="5">
+							<div class="field is-grouped">
+								<div class="control">
+									<button class="button is-success js-token-holders-distribute-all">Distribute All</button>
+								</div>
+								<div class="control">
+									<button class="button is-danger js-token-holders-distribute-finalize">Finalize ICO</button>
+								</div>
+							</div>
+						</th>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</section>
+	
+	<!-- <section id="UKTTokenVotingFactory" class="section" style="display: none">
+		<div class="container">
+			<h2 class="subtitle"><strong>UKTTokenVotingFactory</strong> - creation of new voting and its finalization</h2>
+		</div>
+	</section>
+	
+	<section id="UKTTokenVoting" class="section" style="display: none">
+		<div class="container">
+			<h2 class="subtitle"><strong>UKTTokenVoting</strong> - ability to choose voting proposal and send tokens for vote</h2>
+		</div>
+	</section> -->
+	
+</body>
+
+</html>
