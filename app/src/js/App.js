@@ -2,6 +2,8 @@ import React, { Component, Fragment } from 'react'
 import { Provider }        from 'mobx-react'
 import { hot }             from 'react-hot-loader'
 
+import { BounceLoader } from 'react-spinners'
+
 import contract from 'truffle-contract'
 
 import constants from 'Utils/constants.json'
@@ -11,24 +13,26 @@ import UKTTokenControllerArtifacts    from 'Contracts/UKTTokenController.json'
 import UKTTokenVotingFactoryArtifacts from 'Contracts/UKTTokenVotingFactory.json'
 import UKTTokenVotingArtifacts        from 'Contracts/UKTTokenVoting.json'
 
-const UKTTokenContract              = contract(UKTTokenArtifacts)
-const UKTTokenControllerContract    = contract(UKTTokenControllerArtifacts)
-const UKTTokenVotingFactoryContract = contract(UKTTokenVotingFactoryArtifacts)
-const UKTTokenVotingContract        = contract(UKTTokenVotingArtifacts)
-
-const contracts = {
-	UKTTokenContract,
-	UKTTokenControllerContract,
-	UKTTokenVotingFactoryContract,
-	UKTTokenVotingContract
-}
-
-for (const c of Object.keys(contracts)) {
-	contracts[c].setProvider(web3.currentProvider)
+const UKTContracts = {
+	UKTToken              : contract(UKTTokenArtifacts),
+	UKTTokenController    : contract(UKTTokenControllerArtifacts),
+	UKTTokenVotingFactory : contract(UKTTokenVotingFactoryArtifacts),
+	UKTTokenVoting        : contract(UKTTokenVotingArtifacts)
 }
 
 import UKTTokenController      from './UKTTokenController'
 import UKTTokenControllerStore from './UKTTokenController/store'
+
+const AppLoader = ({ color = '#23d160', loading = false }) => (
+	<div className="app-loader-container">
+		<div className="app-loader-inner">
+			<BounceLoader
+				color={color}
+				loading={loading}
+			/>
+		</div>
+	</div>
+)
 
 const AppError = ({ error }) => <div className="modal is-active">
 	<div className="modal-background"></div>
@@ -43,73 +47,118 @@ const AppError = ({ error }) => <div className="modal is-active">
 class App extends Component {
 	
 	state = {
-		error : null
+		isErrored : false,
+		error     : null,
+		isLoaded  : false,
 	}
 	
 	constructor () {
 		super()
 		
-		this.stores = {
-			UKTTokenControllerStore : new UKTTokenControllerStore(contracts)
-		}
+		this.stores = {}
 	}
 	
 	async componentDidMount () {
-		await this.checkSelectedAccount()
+		await this.prepareMetamask()
 	}
 	
-	async checkSelectedAccount () {
-		try {
-			const selectedAccount = await new Promise((resolve, reject) => {
-				web3.eth.getAccounts((error, result) => {
-					if (error) {
-						reject(error); return
-					}
-					
-					resolve(result[0])
-				})
+	async prepareMetamask () {
+		
+		if (typeof window.web3 === 'undefined') {
+			this.setState({
+				isErrored : true,
+				error     : new Error('Can\'t find Metamask\'s web3 provider!')
 			})
-			
-			if (selectedAccount == constants.owner.address) {
-				this.setState({ error : null })
-				await this.initializeStores()
-			} else {
-				if ( ! this.state.error) {
-					this.setState({
-						error : new Error('Metamask\'s selected account is not the same as contracts owner!')
-					})
-				}
-				
-				setTimeout(async () => await this.checkSelectedAccount(), 100)
-			}
-		} catch (error) {
-			console.error(error)
-			this.setState({ error })
+			return
 		}
+		
+		const selectedNetwork = await new Promise((resolve, reject) => {
+			window.web3.version.getNetwork((error, result) => {
+				if (error) return reject(error)
+				resolve(result)
+			})
+		})
+		
+		const selectedAccount = await new Promise((resolve, reject) => {
+			window.web3.eth.getAccounts((error, result) => {
+				if (error) return reject(error)
+				resolve(result[0])
+			})
+		})
+		
+		let error = null
+		
+		if (selectedNetwork != 5777) {
+			error = new Error('Metamask\'s selected network is not the same as contracts were deployed!')
+		} else if (selectedAccount !== constants.owner.address) {
+			error = new Error('Metamask\'s selected account is not the same as contracts owner!')
+		}
+		
+		if (error) {
+			console.error(error)
+			this.setState({
+				isErrored : true,
+				error
+			})
+			setTimeout(() => this.prepareMetamask(), 300)
+			return
+		}
+		
+		await this.prepareStores(selectedAccount)
+		
 	}
 	
-	async initializeStores () {
+	async prepareStores (selectedAccount) {
 		try {
+			
+			for (const c of Object.keys(UKTContracts)) {
+				UKTContracts[c].setProvider(window.web3.currentProvider)
+			}
+			
+			this.stores = {
+				UKTTokenController : new UKTTokenControllerStore(UKTContracts, selectedAccount),
+				// UKTTokenVotingFactoryStore : new UKTTokenVotingFactoryStore(contracts, selectedAccount),
+				// UKTTokenVotingStore : new UKTTokenVotingStore(contracts, selectedAccount),
+			}
+			
 			for (const s of Object.keys(this.stores)) {
 				await this.stores[s].initialize()
 			}
+			
+			this.setState({
+				isErrored : false,
+				error     : null,
+				isLoaded  : true
+			})
+			
 		} catch (error) {
 			console.error(error)
-			this.setState({ error })
+			this.setState({
+				isErrored : true,
+				error
+			})
 		}
 	}
 	
 	render () {
 		
-		return (
-			this.state.error ? 
-			<AppError error={this.state.error.message || this.state.error} /> :
-			<Provider {...this.stores}>
+		let render = <AppLoader loading={true} />
+		
+		if (this.state.isErrored) {
+			
+			render = <AppError error={this.state.error.message || this.state.error} />
+			
+		} else if (this.state.isLoaded) {
+			
+			render = <Provider {...this.stores}>
 				<Fragment>
 					<UKTTokenController />
 				</Fragment>
 			</Provider>
-	)
+			
+		}
+		
+		return render
 	}
 }
 

@@ -1,1 +1,22 @@
 @import "~bulma/bulma";
+
+.app-loader {
+	
+	&-container {
+		background : #fff;
+		height     : 100%;
+		minHeight  : 60px;
+		minWidth   : 60px;
+		position   : absolute;
+		width      : 100%;
+		zIndex     : 1000
+	}
+	
+	&-inner {
+		left      : 50%;
+		position  : absolute;
+		top       : 50%;
+		transform : translateX(-50%) translateY(-50%)
+	}
+	
+}
