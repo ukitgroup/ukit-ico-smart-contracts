@@ -205,6 +205,18 @@ Each test uses instances of smart contracts that are deployed once at the beginn
 
 Please note that in the ***./test/*** directory only test files (which are executed sequentially, according to the naming convention) should be located.
 
+## Demo App
+
+If you want to try to interact with contracts deployed to *development* network (demo app supports only *UKTToken* and *UKTTokenController* at this moment) you should execute following commands:
+
+```bash
+yarn ganache # in separate terminal
+yarn migrate
+yarn serve   # it will start webpack-dev-server on http://localhost:9999
+```
+
+Don't forget about installing [Metamask](https://metamask.io/) extension into your browser, import the *owner* address which you may find in **./utils/constants.json** and select it.
+
 ## Command reference
 
 * `yarn combine` &mdash; combining of smart contract sources to the ***./build/combined/*** directory and moving the combined files (specified in the `COMBINED_FILES` variable from ***./bin/combine.sh*** &mdash; *UKTToken.combined.sol* and *UKTTokenController.combined.sol*) to the ***./contracts/*** directory
@@ -228,6 +240,8 @@ Please note that in the ***./test/*** directory only test files (which are execu
 * `yarn test [<test_file_name>]` &mdash; start testing in the *development* network
 
 * `yarn clear` &mdash; clear all combined and compiled files
+
+* `yarn serve` &mdash; start a dev web server with demo app on http://localhost:9999
 
 ## Contracts on Etherscan
 

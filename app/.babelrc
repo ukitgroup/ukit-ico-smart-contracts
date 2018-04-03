@@ -1,0 +1,22 @@
+{
+	"presets": [
+		[
+			"env",
+			{
+				"targets": {
+					"browsers":  "last 1 Chrome version"
+				}
+			}
+		],
+		"react"
+	],
+	"plugins": [
+		"react-hot-loader/babel",
+		"transform-decorators-legacy",
+		"transform-function-bind",
+		"transform-object-rest-spread",
+		"transform-class-properties",
+		"transform-runtime",
+		"emotion"
+	]
+}

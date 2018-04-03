@@ -9,5 +9,3 @@ else
 fi
 
 yarn run truffle compile --all $NETWORK_ARG
-
-rm ./contracts/*.combined.sol 2>/dev/null

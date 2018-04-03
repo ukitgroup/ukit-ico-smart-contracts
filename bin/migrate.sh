@@ -11,5 +11,3 @@ else
 fi
 
 yarn run truffle migrate --reset --compile-all $NETWORK_ARG
-
-yarn clear

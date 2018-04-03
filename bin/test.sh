@@ -44,5 +44,3 @@ else
 	
 	run_test $TEST_FILE
 fi
-
-yarn clear
