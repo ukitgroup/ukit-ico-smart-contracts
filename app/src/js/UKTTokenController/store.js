@@ -56,7 +56,7 @@ class TokenHolder {
 	}
 }
 
-export default class UKTTokenControllerStore {
+class UKTTokenControllerStore {
 	
 	@observable totalSupply    = 0
 	@observable icoAllocation  = 0
@@ -81,15 +81,10 @@ export default class UKTTokenControllerStore {
 		return this._isDistributed || this.holders.filter(h => h.avBalance > 0).length === 0
 	}
 	
-	constructor ({ UKTToken, UKTTokenController }, from) {
+	async initialize ({ UKTToken, UKTTokenController }, from) {
 		this.from = from
-		this.UKTToken = UKTToken
-		this.UKTTokenController = UKTTokenController
-	}
-	
-	async initialize () {
-		this.UKTTokenInstance = await this.UKTToken.deployed()
-		this.UKTTokenControllerInstance = await this.UKTTokenController.deployed()
+		this.UKTTokenInstance = await UKTToken.deployed()
+		this.UKTTokenControllerInstance = await UKTTokenController.deployed()
 		
 		await this.setTotalSupply()
 		await this.setIcoAllocation()
@@ -221,3 +216,5 @@ export default class UKTTokenControllerStore {
 		}
 	}
 }
+
+export default  new UKTTokenControllerStore()
