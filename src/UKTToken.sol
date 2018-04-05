@@ -57,7 +57,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		address _controller
 	) public onlyOwner {
 		// cannot be invoked after initial setting
-		require( ! isControlled);
+		require(!isControlled);
 		// _controller should be an address of the smart contract
 		require(_controller.isContract());
 		
@@ -79,7 +79,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		uint _totalSupply
 	) external onlyController returns (bool) {
 		// not configured yet
-		require( ! isConfigured);
+		require(!isConfigured);
 		// not empty name of the token
 		require(bytes(_name).length > 0);
 		// not empty ticker symbol of the token
@@ -108,7 +108,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		uint[] amounts
 	) external returns (bool) {
 		// cannot be invoked after initial allocation
-		require( ! isAllocated);
+		require(!isAllocated);
 		// the array of addresses should be the same length as the array of addresses types
 		require(addresses.length == addressesTypes.length);
 		// the array of addresses should be the same length as the array of allocating amounts

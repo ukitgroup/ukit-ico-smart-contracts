@@ -1,11 +1,11 @@
 pragma solidity ^0.4.18;
 
 
-import './ERC223.sol';
-import './ERC223Reciever.sol';
-import './StandardToken.sol';
+import "./ERC223.sol";
+import "./ERC223Reciever.sol";
+import "./StandardToken.sol";
 
-import './AddressTools.sol';
+import "./AddressTools.sol";
 
 
 /**
@@ -59,7 +59,7 @@ contract ERC223Token is ERC223, StandardToken {
 	/**
 	 * @dev Transfer the specified amount of tokens to the specified address.
 	 *      This function works the same with the previous one
-	 *      but doesn't contain `_data` param.
+	 *      but doesn"t contain `_data` param.
 	 *      Added due to backwards compatibility reasons.
 	 *
 	 * @param _to    Receiver address
