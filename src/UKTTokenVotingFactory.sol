@@ -43,12 +43,7 @@ contract UKTTokenVotingFactory is Ownable {
 		uint256[] acceptedTokensValues
 	) public onlyOwner returns (address votingAddress) {
 		
-		votingAddress = address(new UKTTokenVoting(
-			dateEnd,
-			proposals,
-			acceptedTokens,
-			acceptedTokensValues
-		));
+		votingAddress = address(new UKTTokenVoting(dateEnd, proposals, acceptedTokens, acceptedTokensValues));
 		
 		VotingCreated(votingAddress, dateEnd, proposals, acceptedTokens, acceptedTokensValues);
 		

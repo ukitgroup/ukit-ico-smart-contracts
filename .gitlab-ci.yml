@@ -1,0 +1,27 @@
+image: node
+
+
+before_script:
+  - yarn install
+
+stages:
+  - testing
+
+overall_testing:
+  stage: testing
+  except:
+    - master
+  cache:
+    untracked: true
+    key: "$CI_PROJECT_ID-$CI_COMMIT_REF_SLUG"
+    paths:
+      - node_modules/
+      - ~/.npm/
+      - ~/.yarn/
+  artifacts:
+    paths:
+      - build/combined
+      - build/contracts
+    expire_in: 2 weeks
+  script:
+    - yarn test

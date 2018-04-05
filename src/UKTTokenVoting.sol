@@ -89,7 +89,9 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 * @dev Return true if address not voted yet
 	 */
 	function isAddressNotVoted(address _address) private view returns (bool) {
+		// solium-disable-next-line operator-whitespace
 		return (
+			// solium-disable-next-line operator-whitespace
 			votes[_address].proposalIdx == 0 &&
 			votes[_address].tokensValue == 0 &&
 			votes[_address].weight == 0 &&
@@ -178,7 +180,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 * @dev Finalizes voting
 	 */
 	function finalize(bool _isFinalizedValidly) external onlyOwner {
-		require( ! isFinalized && now >= dateEnd);
+		require(now >= dateEnd && ! isFinalized);
 		
 		isFinalized = true;
 		isFinalizedValidly = _isFinalizedValidly;
@@ -202,7 +204,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 			proposalsWeights[vote.proposalIdx] = proposalsWeights[vote.proposalIdx].sub(vote.weight);
 		}
 		
-		return vote.tokenContractAddress.call(bytes4(keccak256('transfer(address,uint256)')), to, vote.tokensValue);
+		return vote.tokenContractAddress.call(bytes4(keccak256("transfer(address,uint256)")), to, vote.tokensValue);
 	}
 	
 	

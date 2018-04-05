@@ -16,6 +16,7 @@ library AddressTools {
 		}
 		
 		uint codeSize;
+		// solium-disable-next-line security/no-inline-assembly
 		assembly {
 			codeSize := extcodesize(a)
 		}
