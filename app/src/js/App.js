@@ -1,48 +1,35 @@
 import React, { Component, Fragment } from 'react'
-import { Provider }        from 'mobx-react'
-import { hot }             from 'react-hot-loader'
-
-import { BounceLoader } from 'react-spinners'
+import { Provider } from 'mobx-react'
+import { hot } from 'react-hot-loader'
 
 import contract from 'truffle-contract'
 
+import AppLoader from 'AppLoader'
+import AppError from 'AppError'
+
 import constants from 'Utils/constants.json'
 
-import UKTTokenArtifacts              from 'Contracts/UKTToken.json'
-import UKTTokenControllerArtifacts    from 'Contracts/UKTTokenController.json'
-import UKTTokenVotingFactoryArtifacts from 'Contracts/UKTTokenVotingFactory.json'
-import UKTTokenVotingArtifacts        from 'Contracts/UKTTokenVoting.json'
 
-const UKTContracts = {
+import UKTTokenArtifacts from 'Contracts/UKTToken.json'
+import UKTTokenControllerArtifacts from 'Contracts/UKTTokenController.json'
+import UKTTokenVotingFactoryArtifacts from 'Contracts/UKTTokenVotingFactory.json'
+import UKTTokenVotingArtifacts from 'Contracts/UKTTokenVoting.json'
+
+const contracts = {
 	UKTToken              : contract(UKTTokenArtifacts),
 	UKTTokenController    : contract(UKTTokenControllerArtifacts),
 	UKTTokenVotingFactory : contract(UKTTokenVotingFactoryArtifacts),
 	UKTTokenVoting        : contract(UKTTokenVotingArtifacts)
 }
 
-import UKTTokenController      from './UKTTokenController'
+
+import UKTTokenController from './UKTTokenController'
 import UKTTokenControllerStore from './UKTTokenController/store'
 
-const AppLoader = ({ color = '#23d160', loading = false }) => (
-	<div className="app-loader-container">
-		<div className="app-loader-inner">
-			<BounceLoader
-				color={color}
-				loading={loading}
-			/>
-		</div>
-	</div>
-)
+const stores = {
+	UKTTokenController : UKTTokenControllerStore
+}
 
-const AppError = ({ error }) => <div className="modal is-active">
-	<div className="modal-background"></div>
-	<div className="modal-content">
-		<div className="box">
-			{ error }
-			<p><a href="#" onClick={() => window.location.reload()}>Reload the page</a></p>
-		</div>
-	</div>
-</div>
 
 class App extends Component {
 	
@@ -52,17 +39,11 @@ class App extends Component {
 		isLoaded  : false,
 	}
 	
-	constructor () {
-		super()
-		
-		this.stores = {}
-	}
-	
 	async componentDidMount () {
-		await this.prepareMetamask()
+		await this.initializeMetamask()
 	}
 	
-	async prepareMetamask () {
+	async initializeMetamask () {
 		
 		if (typeof window.web3 === 'undefined') {
 			this.setState({
@@ -100,29 +81,23 @@ class App extends Component {
 				isErrored : true,
 				error
 			})
-			setTimeout(() => this.prepareMetamask(), 300)
+			setTimeout(() => this.initializeMetamask(), 300)
 			return
 		}
 		
-		await this.prepareStores(selectedAccount)
+		await this.initializeStores(selectedAccount)
 		
 	}
 	
-	async prepareStores (selectedAccount) {
+	async initializeStores (selectedAccount) {
 		try {
 			
-			for (const c of Object.keys(UKTContracts)) {
-				UKTContracts[c].setProvider(window.web3.currentProvider)
+			for (const c of Object.keys(contracts)) {
+				contracts[c].setProvider(window.web3.currentProvider)
 			}
 			
-			this.stores = {
-				UKTTokenController : new UKTTokenControllerStore(UKTContracts, selectedAccount),
-				// UKTTokenVotingFactoryStore : new UKTTokenVotingFactoryStore(contracts, selectedAccount),
-				// UKTTokenVotingStore : new UKTTokenVotingStore(contracts, selectedAccount),
-			}
-			
-			for (const s of Object.keys(this.stores)) {
-				await this.stores[s].initialize()
+			for (const s of Object.keys(stores)) {
+				await stores[s].initialize(contracts, selectedAccount)
 			}
 			
 			this.setState({
@@ -142,7 +117,7 @@ class App extends Component {
 	
 	render () {
 		
-		let render = <AppLoader loading={true} />
+		let render = <AppLoader />
 		
 		if (this.state.isErrored) {
 			
@@ -150,10 +125,8 @@ class App extends Component {
 			
 		} else if (this.state.isLoaded) {
 			
-			render = <Provider {...this.stores}>
-				<Fragment>
-					<UKTTokenController />
-				</Fragment>
+			render = <Provider {...stores}>
+				<UKTTokenController />
 			</Provider>
 			
 		}
