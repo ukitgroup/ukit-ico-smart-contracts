@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.21;
 
 
 import "./shared/Ownable.sol";
@@ -45,7 +45,7 @@ contract UKTTokenVotingFactory is Ownable {
 		
 		votingAddress = address(new UKTTokenVoting(dateEnd, proposals, acceptedTokens, acceptedTokensValues));
 		
-		VotingCreated(votingAddress, dateEnd, proposals, acceptedTokens, acceptedTokensValues);
+		emit VotingCreated(votingAddress, dateEnd, proposals, acceptedTokens, acceptedTokensValues);
 		
 		votings.push(votingAddress);
 		votingsWinners[votingAddress] = -1;
@@ -70,17 +70,21 @@ contract UKTTokenVotingFactory is Ownable {
 	function setVotingWinner(address votingAddress) public onlyOwner {
 		require(votingsWinners[votingAddress] == -1);
 		
-		var (winnerIdx, winner, winnerWeight) = UKTTokenVoting(votingAddress).getWinner();
+		uint256 winnerIdx;
+		bytes32 winner;
+		uint256 winnerWeight;
+		
+		(winnerIdx, winner, winnerWeight) = UKTTokenVoting(votingAddress).getWinner();
 		
 		bool isFinalizedValidly = winnerIdx > 0;
 		
 		UKTTokenVoting(votingAddress).finalize(isFinalizedValidly);
 		
-		VotingFinalized(votingAddress, isFinalizedValidly);
+		emit VotingFinalized(votingAddress, isFinalizedValidly);
 		
 		votingsWinners[votingAddress] = int256(winnerIdx);
 		
-		WinnerSetted(votingAddress, winnerIdx, winner, winnerWeight);
+		emit WinnerSetted(votingAddress, winnerIdx, winner, winnerWeight);
 	}
 	
 	

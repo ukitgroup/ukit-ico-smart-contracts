@@ -1,10 +1,10 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.21;
 
 
+import "./UKTTokenBasic.sol";
 import "./shared/Ownable.sol";
 import "./shared/SafeMath.sol";
 import "./shared/AddressTools.sol";
-import "./UKTToken.sol";
 
 
 /**
@@ -17,7 +17,7 @@ contract UKTTokenController is Ownable {
 	using AddressTools for address;
 	
 	// address of the controlled token
-	UKTToken public token;
+	UKTTokenBasic public token;
 	// finalize function type. One of two values is possible: "transfer" or "burn"
 	bytes32 public finalizeType = "transfer";
 	// address type where finalize function will transfer undistributed tokens
@@ -61,7 +61,7 @@ contract UKTTokenController is Ownable {
 		require(token == address(0));
 		require(_token.isContract());
 		
-		token = UKTToken(_token);
+		token = UKTTokenBasic(_token);
 		
 		return true;
 	}
@@ -170,7 +170,7 @@ contract UKTTokenController is Ownable {
 		
 		for(uint a = 0; a < addresses.length; a++) {
 			token.transfer(addresses[a], amounts[a].withDecimals(18));
-			Distributed(addresses[a], token.balanceOf(addresses[a]));
+			emit Distributed(addresses[a], token.balanceOf(addresses[a]));
 		}
 		
 		return true;

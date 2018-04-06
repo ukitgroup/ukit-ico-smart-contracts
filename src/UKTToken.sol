@@ -1,17 +1,18 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.21;
 
 
+
+import "./UKTTokenBasic.sol";
 import "./shared/ERC223Token.sol";
-import "./shared/BurnableToken.sol";
-import "./shared/AddressTools.sol";
 import "./shared/Ownable.sol";
+import "./shared/AddressTools.sol";
 
 
 /**
  * @title  Basic UKT token contract
  * @author  Oleg Levshin <levshin@ucoz-team.net>
  */
-contract UKTToken is ERC223Token, BurnableToken, Ownable {
+contract UKTToken is UKTTokenBasic, ERC223Token, Ownable {
 	
 	using AddressTools for address;
 	
@@ -19,33 +20,24 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 	string public symbol;
 	uint public constant decimals = 18;
 	
-	bool public isControlled = false;
-	bool public isConfigured = false;
-	bool public isAllocated = false;
-	
 	// address of the controller contract
 	address public controller = address(0);
-	
-	// mapping of string labels to initial allocated addresses
-	mapping(bytes32 => address) public allocationAddressesTypes;
-	// mapping of addresses to time lock period
-	mapping(address => uint32) public timelockedAddresses;
-	// mapping of addresses to lock flag
-	mapping(address => bool) public lockedAddresses;
-	
-	
-	// fires when the token contract becomes controlled
-	event Controlled(address indexed tokenController);
-	// fires when the token contract becomes configured
-	event Configured(string tokenName, string tokenSymbol, uint totalSupply);
-	event InitiallyAllocated(address indexed owner, bytes32 addressType, uint balance);
-	event InitiallAllocationLocked(address indexed owner);
-	event InitiallAllocationUnlocked(address indexed owner);
-	event InitiallAllocationTimelocked(address indexed owner, uint32 timestamp);
 	
 	
 	modifier onlyController() {
 		require(msg.sender == controller);
+		_;
+	}
+	
+	modifier onlyUnlocked(address _address) {
+		address from = _address != address(0) ? _address : msg.sender;
+		require(
+			lockedAddresses[from] == false &&
+			(
+				timelockedAddresses[from] == 0 ||
+				timelockedAddresses[from] <= now
+			)
+		);
 		_;
 	}
 	
@@ -64,7 +56,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		controller = _controller;
 		removeOwnership();
 		
-		Controlled(controller);
+		emit Controlled(controller);
 		
 		isControlled = true;
 	}
@@ -91,7 +83,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		symbol = _symbol;
 		totalSupply_ = _totalSupply.withDecimals(decimals);
 		
-		Configured(name, symbol, totalSupply_);
+		emit Configured(name, symbol, totalSupply_);
 		
 		isConfigured = true;
 		
@@ -106,7 +98,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		address[] addresses,
 		bytes32[] addressesTypes,
 		uint[] amounts
-	) external returns (bool) {
+	) external onlyController returns (bool) {
 		// cannot be invoked after initial allocation
 		require(!isAllocated);
 		// the array of addresses should be the same length as the array of addresses types
@@ -123,7 +115,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		for(uint a = 0; a < addresses.length; a++) {
 			balances[addresses[a]] = amounts[a].withDecimals(decimals);
 			allocationAddressesTypes[addressesTypes[a]] = addresses[a];
-			InitiallyAllocated(addresses[a], addressesTypes[a], balanceOf(addresses[a]));
+			emit InitiallyAllocated(addresses[a], addressesTypes[a], balanceOf(addresses[a]));
 		}
 		
 		isAllocated = true;
@@ -142,7 +134,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		
 		lockedAddresses[allocationAddress] = true;
 		
-		InitiallAllocationLocked(allocationAddress);
+		emit InitiallAllocationLocked(allocationAddress);
 		
 		return true;
 	}
@@ -158,7 +150,7 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		
 		lockedAddresses[allocationAddress] = false;
 		
-		InitiallAllocationUnlocked(allocationAddress);
+		emit InitiallAllocationUnlocked(allocationAddress);
 		
 		return true;
 	}
@@ -176,23 +168,9 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		
 		timelockedAddresses[allocationAddress] = timelockTillDate;
 		
-		InitiallAllocationTimelocked(allocationAddress, timelockTillDate);
+		emit InitiallAllocationTimelocked(allocationAddress, timelockTillDate);
 		
 		return true;
-	}
-	
-	
-	/**
-	 * @dev Checks that the sender's address is unlocked
-	 */
-	function isAddressUnlocked(address _address) private view returns (bool) {
-		return (
-			lockedAddresses[_address] == false &&
-			(
-				timelockedAddresses[_address] == 0 ||
-				timelockedAddresses[_address] <= now
-			)
-		);
 	}
 	
 	
@@ -202,11 +180,8 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 	function transfer(
 		address _to,
 		uint256 _value
-	) public returns (bool) {
-		require(isAddressUnlocked(msg.sender));
-		
+	) public onlyUnlocked(address(0)) returns (bool) {
 		require(super.transfer(_to, _value));
-		
 		return true;
 	}
 	
@@ -218,11 +193,8 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		address _to,
 		uint256 _value,
 		bytes _data
-	) public returns (bool) {
-		require(isAddressUnlocked(msg.sender));
-		
+	) public onlyUnlocked(address(0)) returns (bool) {
 		require(super.transfer(_to, _value, _data));
-		
 		return true;
 	}
 	
@@ -234,11 +206,8 @@ contract UKTToken is ERC223Token, BurnableToken, Ownable {
 		address _from,
 		address _to,
 		uint256 _value
-	) public returns (bool) {
-		require(isAddressUnlocked(_from));
-		
+	) public onlyUnlocked(_from) returns (bool) {
 		require(super.transferFrom(_from, _to, _value));
-		
 		return true;
 	}
 	

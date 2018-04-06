@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.21;
 
 
 import "./shared/Ownable.sol";
@@ -140,7 +140,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		
 		proposalsWeights[proposalIdx] = proposalsWeights[proposalIdx].add(weight);
 		
-		NewVote(_from, proposalIdx, proposalsWeights[proposalIdx]);
+		emit NewVote(_from, proposalIdx, proposalsWeights[proposalIdx]);
 		
 		return true;
 	}
@@ -215,7 +215,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 		require(isAddressVoted(msg.sender));
 		
 		require(transferTokens(msg.sender));
-		TokensClaimed(msg.sender);
+		emit TokensClaimed(msg.sender);
 		
 		return true;
 	}
@@ -226,7 +226,7 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	 */
 	function _refundTokens(address to) private returns (bool) {
 		require(transferTokens(to));
-		TokensRefunded(to);
+		emit TokensRefunded(to);
 		
 		return true;
 	}
