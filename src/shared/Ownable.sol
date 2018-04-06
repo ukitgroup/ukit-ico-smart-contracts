@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.21;
 
 
 /**
@@ -50,7 +50,7 @@ contract Ownable {
 	 */
 	function transferOwnership(address newOwner) public onlyOwner {
 		require(newOwner != address(0));
-		OwnershipTransfer(owner, newOwner);
+		emit OwnershipTransfer(owner, newOwner);
 		potentialOwner = newOwner;
 	}
 	
@@ -59,7 +59,7 @@ contract Ownable {
 	 * @dev Allow the potential owner confirm ownership of the contract.
 	 */
 	function confirmOwnership() public onlyPotentialOwner {
-		OwnershipTransferred(owner, potentialOwner);
+		emit OwnershipTransferred(owner, potentialOwner);
 		owner = potentialOwner;
 		potentialOwner = address(0);
 	}
@@ -69,7 +69,7 @@ contract Ownable {
 	 * @dev Remove the contract owner permanently
 	 */
 	function removeOwnership() public onlyOwner {
-		OwnershipRemoved(owner);
+		emit OwnershipRemoved(owner);
 		owner = address(0);
 	}
 	

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.21;
 
 
 import "./ERC223.sol";
@@ -33,7 +33,7 @@ contract ERC223Token is ERC223, StandardToken {
 		
 		if(_to.isContract()) {
 			require(executeTokenFallback(_to, _value, _data));
-			ERC223Transfer(msg.sender, _to, _value, _data);
+			emit ERC223Transfer(msg.sender, _to, _value, _data);
 		}
 		
 		return true;
