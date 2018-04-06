@@ -34,6 +34,13 @@
 		"lint": "yarn solium -d ./src",
 		"test": "yarn lint && yarn clean && ./bin/test.sh"
 	},
+	"config": {
+		"pre-git": {
+			"pre-commit": [
+				"yarn lint"
+			]
+		}
+	},
 	"devDependencies": {
 		"babel-core": "^6.26.0",
 		"babel-loader": "^7.1.4",
@@ -52,6 +59,7 @@
 		"mobx": "^4.1.1",
 		"mobx-react": "^5.0.0",
 		"node-sass": "^4.8.3",
+		"pre-git": "^3.17.1",
 		"react": "^16.3.0",
 		"react-dom": "^16.3.0",
 		"react-hot-loader": "^4.0.1",
