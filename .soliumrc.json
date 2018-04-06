@@ -9,7 +9,6 @@
       "error",
       ["callcode", "delegatecall"]
     ],
-    "emit": 0,
     "quotes": [
       "error",
       "double"
