@@ -23,25 +23,15 @@ module.exports = {
 			{
 				test: /\.js$/,
 				exclude: /node_modules/,
-				use: {
-					loader: "babel-loader"
-				}
+				use: "babel-loader"
 			},
 			{
 				test: /\.html$/,
-				use: {
-					loader: "html-loader"
-				}
+				use: "html-loader"
 			},
 			{
 				test: /\.(scss|sass)$/,
-				use: [{
-					loader: "style-loader"
-				}, {
-					loader: "css-loader"
-				}, {
-					loader: "sass-loader"
-				}]
+				use: ["style-loader", "css-loader", "sass-loader"]
 			}
 		]
 	},
