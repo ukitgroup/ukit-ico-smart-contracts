@@ -100,7 +100,7 @@ class UKTTokenControllerStore {
 	
 		console.info(result)
 	
-		if ( ! window.web3.toDecimal(result.receipt.status)) {
+		if ( ! parseInt(result.receipt.status)) {
 			throw Error(`Transaction ${result.tx} failed!`)
 		}
 		

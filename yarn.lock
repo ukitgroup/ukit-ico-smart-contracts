@@ -6316,6 +6316,10 @@ react-hot-loader@^4.0.1:
     prop-types "^15.6.1"
     shallowequal "^1.0.2"
 
+react-metamask-checker@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-metamask-checker/-/react-metamask-checker-1.0.0.tgz#916c8ae21e4652f35aaf57840cf962e9f400b9fa"
+
 react-number-format@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/react-number-format/-/react-number-format-3.3.0.tgz#e59884075bccd80af6c1f521f2bef2f564cb3e24"

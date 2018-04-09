@@ -11,6 +11,7 @@ const FormattedTokensValue = ({ value }) => <NumberFormat
 	thousandSeparator={true}
 />
 
+
 @inject('UKTTokenController')
 @observer
 class ControllerStat extends Component {
