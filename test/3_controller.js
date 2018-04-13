@@ -26,12 +26,15 @@ describe('UKTTokenController', addresses => {
 	
 	it('Should distribute amounts to investors', async () => {
 		
-		const icoAllocation = allocationsConfig.find(a => a.name === 'ico').amount
+		const icoAllocation = withDecimals(
+			allocationsConfig.find(a => a.name === 'ico').amount,
+			tokenConfig.decimals
+		)
 		
 		const contrBalanceInitial =  await TokenContract.balanceOf.call(await TokenContract.controller.call())
 		assert.equal(
 			contrBalanceInitial.toNumber(),
-			withDecimals(icoAllocation, tokenConfig.decimals),
+			icoAllocation,
 			'Initial controller balance do not match'
 		)
 		
@@ -42,31 +45,53 @@ describe('UKTTokenController', addresses => {
 			constants.investor4.address
 		]
 		const investorsAmounts = investorsAddresses.map(
-			(a, i) => 10000 * (i + 1)
+			(a, i) => withDecimals(10000 * (i + 1), tokenConfig.decimals)
+		)
+		const investorsTrackingIds = investorsAddresses.map(
+			a => web3.sha3(a)
 		)
 		const investorsAmountsTotal = investorsAmounts.reduce(
 			(total, a) => total + a,
 			0
 		)
 		
-		await ControllerContract.distribute(investorsAddresses, investorsAmounts, {
-			from : constants.owner.address
-		})
+		await ControllerContract.distribute(
+			investorsAddresses,
+			investorsAmounts,
+			investorsTrackingIds,
+			{ from : constants.owner.address }
+		)
 		
 		for (const i in investorsAddresses) {
 			
 			const investorBalance = await TokenContract.balanceOf.call(investorsAddresses[i])
 			assert.equal(
 				investorBalance.toNumber(),
-				withDecimals(investorsAmounts[i], tokenConfig.decimals),
+				investorsAmounts[i],
 				'Investor balance do not match'
+			)
+			
+			const distributedEvent = await new Promise(resolve => {
+				ControllerContract.Distributed({
+					owner      : investorsAddresses[i],
+					trackingId : investorsTrackingIds[i]
+				}, {
+					fromBlock : 0,
+					toBlock   : 'latest'
+				}).get((error, result) => resolve(error || result[0]))
+			})
+			assert.isObject(distributedEvent, 'Distributed event is not an object')
+			assert.equal(
+				distributedEvent.args.amount.toNumber(),
+				investorsAmounts[i],
+				'Amount from Distributed event do not match'
 			)
 		}
 		
 		const contrBalanceRest = await TokenContract.balanceOf.call(ControllerContract.address)
 		assert.equal(
 			contrBalanceRest.toNumber(),
-			withDecimals(icoAllocation - investorsAmountsTotal, tokenConfig.decimals),
+			icoAllocation - investorsAmountsTotal,
 			'Rest controller balance do not match'
 		)
 	})

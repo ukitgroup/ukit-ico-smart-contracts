@@ -29,7 +29,7 @@ contract UKTTokenController is Ownable {
 	
 	
 	// fires when tokens distributed to holder
-	event Distributed(address indexed owner, uint256 amount);
+	event Distributed(address indexed holder, bytes32 indexed trackingId, uint256 amount);
 	
 	
 	/**
@@ -160,17 +160,18 @@ contract UKTTokenController is Ownable {
 	 */
 	function distribute(
 		address[] addresses,
-		uint[] amounts
+		uint[] amounts,
+		bytes32[] trackingIds
 	) public onlyOwner returns (bool) {
 		require(token != address(0));
 		// quantity of addresses should be less than MAX_ADDRESSES_FOR_DISTRIBUTE
 		require(addresses.length < MAX_ADDRESSES_FOR_DISTRIBUTE);
 		// the array of addresses should be the same length as the array of amounts
-		require(addresses.length == amounts.length);
+		require(addresses.length == amounts.length && addresses.length == trackingIds.length);
 		
 		for(uint a = 0; a < addresses.length; a++) {
-			token.transfer(addresses[a], amounts[a].withDecimals(18));
-			emit Distributed(addresses[a], token.balanceOf(addresses[a]));
+			token.transfer(addresses[a], amounts[a]);
+			emit Distributed(addresses[a], trackingIds[a], amounts[a]);
 		}
 		
 		return true;

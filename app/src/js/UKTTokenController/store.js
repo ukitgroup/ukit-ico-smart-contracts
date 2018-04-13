@@ -92,7 +92,7 @@ class UKTTokenControllerStore {
 	}
 	
 	async balanceOf (address) {
-		return (await this.UKTTokenInstance.balanceOf.call(address)).toNumber() / 10 ** 18
+		return window.web3.fromWei(await this.UKTTokenInstance.balanceOf.call(address)).toNumber()
 	}
 	
 	async processTransaction (tx) {
@@ -113,8 +113,13 @@ class UKTTokenControllerStore {
 		
 		console.log(addresses, amounts, { from : this.from })
 		
+		const trackingIds = addresses.map(a => window.web3.sha3(a))
+		
 		const result = this.processTransaction(this.UKTTokenControllerInstance.distribute(
-			addresses, amounts, { from : this.from }
+			addresses,
+			amounts.map(a => window.web3.toWei(a)),
+			trackingIds,
+			{ from : this.from }
 		))
 		
 		return result
@@ -131,7 +136,7 @@ class UKTTokenControllerStore {
 	
 	@action
 	async setTotalSupply () {
-		this.totalSupply = (await this.UKTTokenInstance.totalSupply.call()).toNumber() / 10 ** 18
+		this.totalSupply = window.web3.fromWei(await this.UKTTokenInstance.totalSupply.call()).toNumber()
 	}
 	
 	@action
