@@ -59,7 +59,10 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		constants.investor4.address
 	]
 	const investorsAmounts = investors.map(
-		(a, i) => 10000 * (i + 1)
+		(a, i) => withDecimals(10000 * (i + 1), tokenConfig.decimals)
+	)
+	const investorsTrackingIds = investors.map(
+		a => web3.sha3(a)
 	)
 	
 	const transferERC223TokensToVotingContract = async (from, _value, _data) => await web3.eth.sendTransaction({
@@ -81,7 +84,7 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 		
 		await delay(100)
 		
-		await ControllerContract.distribute(investors, investorsAmounts, {
+		await ControllerContract.distribute(investors, investorsAmounts, investorsTrackingIds, {
 			from : constants.owner.address
 		})
 	})
@@ -301,7 +304,7 @@ describe('UKTTokenVotingFactory + UKTTokenVoting', addresses => {
 			const balanceOf = await TokenContract.balanceOf.call(investors[idx])
 			assert.equal(
 				balanceOf.toNumber(),
-				withDecimals(investorsAmounts[idx], tokenConfig.decimals),
+				investorsAmounts[idx],
 				`Investor ${constants[`investor${parseInt(idx) + 1}`].address} balanceOf do not match`
 			)
 		}
