@@ -25,7 +25,7 @@ const contracts = {
 
 
 import UKTTokenController from './UKTTokenController'
-import UKTTokenControllerStore from './UKTTokenController/store'
+import UKTTokenControllerStore from './stores/UKTTokenController'
 
 const stores = {
 	UKTTokenController : UKTTokenControllerStore
@@ -39,15 +39,18 @@ class App extends Component {
 		error     : null
 	}
 	
+	constructor (props) {
+		super(props)
+		
+		this.stores = {}
+	}
+	
 	async initializeStores (provider, account) {
 		try {
 			
-			for (const c of Object.keys(contracts)) {
-				contracts[c].setProvider(provider)
-			}
-			
 			for (const s of Object.keys(stores)) {
-				await stores[s].initialize(contracts, account)
+				this.stores[s] = new stores[s](provider, account)
+				await this.stores[s].initialize(contracts)
 			}
 			
 		} catch (error) {
@@ -64,6 +67,8 @@ class App extends Component {
 		if (this.state.isErrored) {
 			return <AppError error={this.state.error.message || this.state.error} />
 		}
+		
+		const { stores } = this
 		
 		const props = {
 			account : constants.owner.address,

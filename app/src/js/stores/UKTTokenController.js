@@ -1,5 +1,7 @@
-import { action, computed, observable, extendObservable } from 'mobx'
-import delay from 'nanodelay'
+import { action, computed, observable } from 'mobx'
+
+import Base from './Base'
+
 
 const holdersAddresses = [
 	'0x1042f55c0413ad18df17908c71fb4a08dbf75203', // 0xf16fc0867e2fa44b1d4ad4b47bd67b3c6453c32a9d8044c9f4cd0cd302ed50b3
@@ -56,7 +58,7 @@ class TokenHolder {
 	}
 }
 
-class UKTTokenControllerStore {
+class UKTTokenControllerStore extends Base {
 	
 	@observable totalSupply    = 0
 	@observable icoAllocation  = 0
@@ -65,8 +67,6 @@ class UKTTokenControllerStore {
 	@observable _isDistributed = false
 	@observable isFinalizing   = false
 	@observable _isFinalized   = false
-	
-	from = '0x0'
 	
 	UKTTokenInstance = null
 	UKTTokenControllerInstance = null
@@ -81,8 +81,14 @@ class UKTTokenControllerStore {
 		return this._isDistributed || this.holders.filter(h => h.avBalance > 0).length === 0
 	}
 	
-	async initialize ({ UKTToken, UKTTokenController }, from) {
-		this.from = from
+	constructor (provider, from) {
+		super(provider, from)
+	}
+	
+	async initialize ({ UKTToken, UKTTokenController }) {
+		UKTToken.setProvider(this.web3.currentProvider)
+		UKTTokenController.setProvider(this.web3.currentProvider)
+		
 		this.UKTTokenInstance = await UKTToken.deployed()
 		this.UKTTokenControllerInstance = await UKTTokenController.deployed()
 		
@@ -92,7 +98,12 @@ class UKTTokenControllerStore {
 	}
 	
 	async balanceOf (address) {
-		return window.web3.fromWei(await this.UKTTokenInstance.balanceOf.call(address)).toNumber()
+		return this.web3.fromWei(await this.request({
+			instance : this.UKTTokenInstance,
+			method   : 'balanceOf',
+			call     : true,
+			params   : [address]
+		})).toNumber()
 	}
 	
 	async processTransaction (tx) {
@@ -104,39 +115,41 @@ class UKTTokenControllerStore {
 			throw Error(`Transaction ${result.tx} failed!`)
 		}
 		
-		await delay(3000)
-		
 		return result
 	}
 	
 	async processTokensDistribution (addresses, amounts) {
 		
-		console.log(addresses, amounts, { from : this.from })
+		console.log(addresses, amounts)
 		
 		const trackingIds = addresses.map(a => window.web3.sha3(a))
 		
-		const result = this.processTransaction(this.UKTTokenControllerInstance.distribute(
-			addresses,
-			amounts.map(a => window.web3.toWei(a)),
-			trackingIds,
-			{ from : this.from }
-		))
+		const result = this.processTransaction(this.request({
+			instance : this.UKTTokenControllerInstance,
+			method   : 'distribute',
+			params   : [ addresses,  amounts.map(a => window.web3.toWei(a)), trackingIds ]
+		}))
 		
 		return result
 	}
 	
 	async processTokensDistributionFinalizing () {
 		
-		const result = this.processTransaction(this.UKTTokenControllerInstance.finalize(
-			{ from : this.from }
-		))
+		const result = this.processTransaction(this.request({
+			instance : this.UKTTokenControllerInstance,
+			method   : 'finalize'
+		}))
 		
 		return result
 	}
 	
 	@action
 	async setTotalSupply () {
-		this.totalSupply = window.web3.fromWei(await this.UKTTokenInstance.totalSupply.call()).toNumber()
+		this.totalSupply = this.web3.fromWei(await this.request({
+			instance : this.UKTTokenInstance,
+			method : 'totalSupply',
+			call : true
+		})).toNumber()
 	}
 	
 	@action
@@ -222,4 +235,4 @@ class UKTTokenControllerStore {
 	}
 }
 
-export default  new UKTTokenControllerStore()
+export default UKTTokenControllerStore
