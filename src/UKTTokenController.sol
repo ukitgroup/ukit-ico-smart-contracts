@@ -16,6 +16,8 @@ contract UKTTokenController is Ownable {
 	using SafeMath for uint256;
 	using AddressTools for address;
 	
+	bool public isFinalized = false;
+	
 	// address of the controlled token
 	UKTTokenBasic public token;
 	// finalize function type. One of two values is possible: "transfer" or "burn"
@@ -30,7 +32,8 @@ contract UKTTokenController is Ownable {
 	
 	// fires when tokens distributed to holder
 	event Distributed(address indexed holder, bytes32 indexed trackingId, uint256 amount);
-	
+	// fires when tokens distribution is finalized
+	event Finalized();
 	
 	/**
 	 * @dev The UKTTokenController constructor
@@ -196,7 +199,10 @@ contract UKTTokenController is Ownable {
 		
 		require(unlockAllAllocationAddresses());
 		
-		selfdestruct(owner);
+		removeOwnership();
+		
+		isFinalized = true;
+		emit Finalized();
 	}
 	
 }
