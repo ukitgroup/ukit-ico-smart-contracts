@@ -75,41 +75,6 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	
 	
 	/**
-	 * @dev Checks proposal index for validity
-	 */
-	function isValidProposal(uint256 proposalIdx) private view returns (bool) {
-		return (
-			proposalIdx > 0 &&
-			proposals[proposalIdx].length > 0
-		);
-	}
-	
-	
-	/**
-	 * @dev Return true if address not voted yet
-	 */
-	function isAddressNotVoted(address _address) private view returns (bool) {
-		// solium-disable-next-line operator-whitespace
-		return (
-			// solium-disable-next-line operator-whitespace
-			votes[_address].proposalIdx == 0 &&
-			votes[_address].tokensValue == 0 &&
-			votes[_address].weight == 0 &&
-			votes[_address].tokenContractAddress == address(0) &&
-			votes[_address].blockNumber == 0
-		);
-	}
-	
-	
-	/**
-	 * @dev Return true if address already voted
-	 */
-	function isAddressVoted(address _address) private view returns (bool) {
-		return ! isAddressNotVoted(_address);
-	}
-	
-	
-	/**
 	 * @dev Executes automatically when user transfer his token to this contract address
 	 */
 	function tokenFallback(
@@ -188,6 +153,70 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	
 	
 	/**
+	 * @dev Allows voter to claim his tokens back to address
+	 */
+	function claimTokens() public returns (bool) {
+		require(isAddressVoted(msg.sender));
+		
+		require(transferTokens(msg.sender));
+		emit TokensClaimed(msg.sender);
+		
+		return true;
+	}
+	
+	
+	/**
+	 * @dev Refunds tokens for all voters
+	 */
+	function refundTokens(address to) public onlyOwner returns (bool) {
+		if(to != address(0)) {
+			return _refundTokens(to);
+		}
+		
+		for(uint256 i = 0; i < voters.length; i++) {
+			_refundTokens(voters[i]);
+		}
+		
+		return true;
+	}
+	
+	
+	/**
+	 * @dev Checks proposal index for validity
+	 */
+	function isValidProposal(uint256 proposalIdx) private view returns (bool) {
+		return (
+			proposalIdx > 0 &&
+			proposals[proposalIdx].length > 0
+		);
+	}
+	
+	
+	/**
+	 * @dev Return true if address not voted yet
+	 */
+	function isAddressNotVoted(address _address) private view returns (bool) {
+		// solium-disable-next-line operator-whitespace
+		return (
+			// solium-disable-next-line operator-whitespace
+			votes[_address].proposalIdx == 0 &&
+			votes[_address].tokensValue == 0 &&
+			votes[_address].weight == 0 &&
+			votes[_address].tokenContractAddress == address(0) &&
+			votes[_address].blockNumber == 0
+		);
+	}
+	
+	
+	/**
+	 * @dev Return true if address already voted
+	 */
+	function isAddressVoted(address _address) private view returns (bool) {
+		return ! isAddressNotVoted(_address);
+	}
+	
+	
+	/**
 	 * @dev Trasnfer tokens to voter
 	 */
 	function transferTokens(address to) private returns (bool) {
@@ -209,40 +238,11 @@ contract UKTTokenVoting is ERC223Reciever, Ownable {
 	
 	
 	/**
-	 * @dev Allows voter to claim his tokens back to address
-	 */
-	function claimTokens() public returns (bool) {
-		require(isAddressVoted(msg.sender));
-		
-		require(transferTokens(msg.sender));
-		emit TokensClaimed(msg.sender);
-		
-		return true;
-	}
-	
-	
-	/**
 	 * @dev Refunds tokens to particular address
 	 */
 	function _refundTokens(address to) private returns (bool) {
 		require(transferTokens(to));
 		emit TokensRefunded(to);
-		
-		return true;
-	}
-	
-	
-	/**
-	 * @dev Refunds tokens for all voters
-	 */
-	function refundTokens(address to) public onlyOwner returns (bool) {
-		if(to != address(0)) {
-			return _refundTokens(to);
-		}
-		
-		for(uint256 i = 0; i < voters.length; i++) {
-			_refundTokens(voters[i]);
-		}
 		
 		return true;
 	}

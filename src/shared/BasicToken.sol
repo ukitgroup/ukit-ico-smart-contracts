@@ -13,9 +13,9 @@ contract BasicToken is ERC20Basic {
 	
 	using SafeMath for uint256;
 	
-	mapping(address => uint256) balances;
+	mapping(address => uint256) public balances;
 	
-	uint256 totalSupply_;
+	uint256 public totalSupply_;
 	
 	
 	/**
