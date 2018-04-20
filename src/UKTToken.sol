@@ -21,7 +21,7 @@ contract UKTToken is UKTTokenBasic, ERC223Token, Ownable {
 	uint public constant decimals = 18;
 	
 	// address of the controller contract
-	address public controller = address(0);
+	address public controller;
 	
 	
 	modifier onlyController() {
