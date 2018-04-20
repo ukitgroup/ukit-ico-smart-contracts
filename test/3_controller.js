@@ -100,8 +100,19 @@ describe('UKTTokenController', addresses => {
 		
 		const icoAllocationBefore = await TokenContract.balanceOf.call(ControllerContract.address)
 		await ControllerContract.finalize({ from : constants.owner.address })
-		const icoAllocationAfter = await TokenContract.balanceOf.call(ControllerContract.address)
 		
+		const ownerAddress = await ControllerContract.owner.call()
+		assert.equal(ownerAddress, 0, 'Ownership was not deleted')
+		
+		try {
+			await ControllerContract.finalize({ from : constants.owner.address })
+			
+			throw Error('Finalize call should not be able after the owner has been removed')
+		} catch (error) {
+			assert.equal(error.message, 'VM Exception while processing transaction: revert')
+		}
+		
+		const icoAllocationAfter = await TokenContract.balanceOf.call(ControllerContract.address)
 		assert.equal(icoAllocationAfter.toNumber(), 0, 'ICO allocation balance after do not match')
 		
 		if (controllerConfig.finalizeType === 'transfer') {
