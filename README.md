@@ -247,11 +247,11 @@ Don't forget about installing [Metamask](https://metamask.io/) extension into yo
 
 ### Kovan
 
-Token address: [0x6357403ec78c4c1258fa71fcbcb2695a291be6b5](https://kovan.etherscan.io/address/0x6357403ec78c4c1258fa71fcbcb2695a291be6b5)
+Token address: [0x4cab1c3c861978b6010288323caa45e7f307be60](https://kovan.etherscan.io/address/0x4cab1c3c861978b6010288323caa45e7f307be60)
 
-Token controller address: [0x4b33ac50cf426521a5ebca2827a0d95bbbf266bf](https://kovan.etherscan.io/address/0x4b33ac50cf426521a5ebca2827a0d95bbbf266bf)
+Token controller address: [0x5595b3d3168bdf20af6a148753c0fce6a125f03f](https://kovan.etherscan.io/address/0x5595b3d3168bdf20af6a148753c0fce6a125f03f)
 
-Token voting factory address: [0x6f165f3808dba5d22af89096943eaa14c62c2487](https://kovan.etherscan.io/address/0x6f165f3808dba5d22af89096943eaa14c62c2487)
+Token voting factory address: [0x1a42bce0e131c89144b769eda047286891a99b56](https://kovan.etherscan.io/address/0x1a42bce0e131c89144b769eda047286891a99b56)
 
 ### Mainnet
 
