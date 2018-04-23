@@ -1,5 +1,9 @@
 #!/bin/bash
 
+declare -A TESTS_RESULTS
+TESTS_DIR="./test"
+TESTS=$(ls "$TESTS_DIR")
+
 list_descendants () {
 	local children=$(ps -o pid= --ppid "$1")
 	
@@ -17,7 +21,8 @@ shutdown () {
 run_test () {
 	./bin/ganache.sh &> /dev/null &
 	
-	yarn run truffle test "$1" --network development
+	yarn run --silent truffle test "$1" --network development 2> /dev/null
+	TESTS_RESULTS[$1]=$?
 	
 	shutdown &> /dev/null
 	trap 'shutdown' SIGINT SIGTERM EXIT
@@ -25,9 +30,6 @@ run_test () {
 
 ./bin/compile.sh
 if [ $? -ne 0 ]; then exit 1; fi
-
-TESTS_DIR="./test"
-TESTS=$(ls "$TESTS_DIR")
 
 if [[ -z "$1" ]]; then
 	for TEST in $TESTS; do
@@ -44,3 +46,18 @@ else
 	
 	run_test $TEST_FILE
 fi
+
+EXIT_CODE=0
+
+for T in "${!TESTS_RESULTS[@]}"; do
+	if [ ${TESTS_RESULTS[$T]} -ne 0 ]; then
+		EXIT_CODE=1
+		echo "There is an error in the test file $T!"
+	fi
+done
+
+if [ "$EXIT_CODE" -eq 1 ]; then
+	echo ""
+fi
+
+exit $EXIT_CODE

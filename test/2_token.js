@@ -58,7 +58,7 @@ describe('UKTToken', addresses => {
 		const controllerAddress = await TokenContract.controller.call()
 		const totalSupply = await TokenContract.totalSupply.call()
 		
-		let balancesSupply = 0
+		let balancesSupply = new web3.BigNumber(0)
 		for (const a of allocationsConfig) {
 			
 			const addressFromContract = web3.toChecksumAddress(
@@ -70,13 +70,13 @@ describe('UKTToken', addresses => {
 			assert.equal(addressFromContract, addressFromConfig, `Allocation address type do not match for ${a.name}`)
 			
 			const balanceFromContract = await TokenContract.balanceOf.call(a.address || controllerAddress)
-			const balanceFromConfig = withDecimals(a.amount, tokenConfig.decimals)
-			assert.equal(balanceFromContract.toNumber(), balanceFromConfig, `Allocation address balance do not match for ${a.name}`)
+			const balanceFromConfig = new web3.BigNumber(withDecimals(a.amount, tokenConfig.decimals).toString())
+			assert.isTrue(balanceFromContract.equals(balanceFromConfig), `Allocation address balance do not match for ${a.name}`)
 			
-			balancesSupply += balanceFromContract.toNumber()
+			balancesSupply = balancesSupply.plus(balanceFromContract)
 		}
 		
-		assert.equal(balancesSupply, totalSupply.toNumber(), 'Allocated supply do not match')
+		assert.isTrue(balancesSupply.equals(totalSupply), 'Allocated supply do not match')
 	})
 	
 	it('Should be locked', async () => {
